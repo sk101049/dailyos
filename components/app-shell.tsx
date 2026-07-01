@@ -13,6 +13,9 @@ const navItems = [
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const currentItem =
+    navItems.find((item) => pathname === item.href || pathname.startsWith(`${item.href}/`)) ??
+    navItems[0];
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -62,7 +65,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="flex min-h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Daily workspace</p>
-              <h1 className="text-lg font-semibold">Dashboard</h1>
+              <h1 className="text-lg font-semibold">{currentItem.label}</h1>
             </div>
             <Button variant="outline" size="sm">
               Today
