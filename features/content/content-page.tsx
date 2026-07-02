@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -61,6 +62,69 @@ const workspaceSections = [
   }
 ];
 
+const generatorControls = [
+  {
+    label: "Insurance topic",
+    value: "Retirement",
+    options: [
+      "Retirement",
+      "Medical",
+      "Cancer",
+      "Disability",
+      "Long-term Care",
+      "Family Protection"
+    ]
+  },
+  {
+    label: "Target audience",
+    value: "Young families",
+    options: ["Young families", "Working adults", "Business owners", "Retirees"]
+  },
+  {
+    label: "Video length",
+    value: "60 seconds",
+    options: ["30 seconds", "60 seconds", "90 seconds"]
+  },
+  {
+    label: "Tone",
+    value: "Educational",
+    options: ["Educational", "Warm", "Professional", "Urgent"]
+  },
+  {
+    label: "Platform",
+    value: "YouTube Shorts",
+    options: ["YouTube Shorts", "TikTok", "Instagram Reels", "Facebook Reels"]
+  }
+];
+
+const generatorPreviews = [
+  {
+    title: "Title",
+    content: "Can your family keep the same lifestyle if income stops?"
+  },
+  {
+    title: "Hook",
+    content: "Most families plan for growth, but forget to plan for interruption."
+  },
+  {
+    title: "Script",
+    content:
+      "Use this short placeholder script to explain one protection gap, one real-life example, and one simple next step."
+  },
+  {
+    title: "CTA",
+    content: "Review your current coverage before the next major family decision."
+  },
+  {
+    title: "Hashtags",
+    content: "#insurance #familyprotection #financialplanning"
+  },
+  {
+    title: "Cover Text",
+    content: "Protect the income your family depends on."
+  }
+];
+
 const assistantSuggestions = [
   "Pick one customer question and turn it into a 30-second answer.",
   "Start with one topic card, then fill the Hook before the full Script.",
@@ -102,6 +166,68 @@ export function ContentPage() {
                     <CardTitle>{topic.title}</CardTitle>
                     <CardDescription>{topic.description}</CardDescription>
                   </CardHeader>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="space-y-1">
+                <CardTitle>AI Script Generator</CardTitle>
+                <CardDescription>
+                  Static controls for planning future AI-generated short-form
+                  insurance scripts.
+                </CardDescription>
+              </div>
+              <Badge variant="outline" className="w-fit">
+                UI only
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+              {generatorControls.map((control) => (
+                <div
+                  key={control.label}
+                  className="rounded-lg border bg-background p-4"
+                >
+                  <p className="text-xs font-medium uppercase text-muted-foreground">
+                    {control.label}
+                  </p>
+                  <p className="mt-2 text-sm font-semibold">{control.value}</p>
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {control.options.map((option) => (
+                      <Badge
+                        key={option}
+                        variant={option === control.value ? "secondary" : "outline"}
+                      >
+                        {option}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <Button>Generate Script</Button>
+
+            <div className="grid gap-4 lg:grid-cols-2">
+              {generatorPreviews.map((preview) => (
+                <Card key={preview.title} className="shadow-none">
+                  <CardHeader>
+                    <div className="flex items-start justify-between gap-3">
+                      <CardTitle>{preview.title}</CardTitle>
+                      <Badge variant="outline">Preview</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="min-h-24 rounded-md border bg-secondary/40 p-4 text-sm leading-6">
+                      {preview.content}
+                    </div>
+                  </CardContent>
                 </Card>
               ))}
             </div>
