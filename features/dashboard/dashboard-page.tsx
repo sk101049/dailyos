@@ -6,44 +6,45 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
+import { messages } from "@/messages/zh-TW";
 
 const dashboardCards = [
   {
-    title: "Today's Tasks",
-    value: "6 open",
-    detail: "Prioritize follow-ups, prep work, and content tasks.",
-    status: "Focus"
+    title: "今日任務",
+    value: "6 項待辦",
+    detail: "優先處理客戶追蹤、準備事項與內容任務。",
+    status: "焦點"
   },
   {
-    title: "Video Pipeline",
-    value: "2 drafts",
-    detail: "One education topic is ready to record today.",
-    status: "Content"
+    title: "影片流程",
+    value: "2 份草稿",
+    detail: "有一個教育主題今天可以開始錄製。",
+    status: "內容"
   },
   {
-    title: "Customer Follow-ups",
-    value: "3 customers",
-    detail: "Check recent policy questions and renewal timing.",
-    status: "CRM"
+    title: "客戶追蹤",
+    value: "3 位客戶",
+    detail: "檢查近期保單問題與續約時程。",
+    status: messages.navigation.crm
   },
   {
-    title: "Appointments",
-    value: "4 scheduled",
-    detail: "Review tomorrow's meetings before the end of day.",
-    status: "Calendar"
+    title: messages.crm.appointments,
+    value: "4 場已排程",
+    detail: "今天結束前先確認明天的會議內容。",
+    status: "行事曆"
   },
   {
-    title: "Sales Progress",
+    title: "銷售進度",
     value: "68%",
-    detail: "Track active opportunities and next relationship steps.",
-    status: "Pipeline"
+    detail: "掌握進行中的機會與下一步關係經營。",
+    status: "流程"
   }
 ];
 
 const suggestions = [
-  "Follow up with 3 customers.",
-  "Record one insurance education video.",
-  "Prepare tomorrow's appointments."
+  "追蹤 3 位客戶。",
+  "錄製一支保險教育影片。",
+  "準備明天的預約會議。"
 ];
 
 export function DashboardPage() {
@@ -52,17 +53,16 @@ export function DashboardPage() {
       <section className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-medium text-primary">Sprint 1</p>
+            <p className="text-sm font-medium text-primary">第 1 衝刺</p>
             <h2 className="mt-2 text-3xl font-semibold tracking-normal">
-              Today's priorities
+              今日優先事項
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-              A placeholder dashboard for reviewing daily insurance work before
-              backend data and AI automation are added.
+              在後端資料與 AI 自動化加入前，先用示範工作儀表板檢視每日保險工作。
             </p>
           </div>
           <Badge variant="secondary" className="w-fit">
-            Placeholder data
+            {messages.common.placeholderData}
           </Badge>
         </div>
 
@@ -89,9 +89,9 @@ export function DashboardPage() {
       <aside className="space-y-4">
         <Card className="xl:sticky xl:top-24">
           <CardHeader>
-            <CardTitle>AI Assistant</CardTitle>
+            <CardTitle>{messages.common.aiAssistant}</CardTitle>
             <CardDescription>
-              Placeholder suggestions for planning the day.
+              用於規劃今日工作的示範建議。
             </CardDescription>
           </CardHeader>
           <CardContent>

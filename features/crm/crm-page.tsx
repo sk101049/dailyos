@@ -7,58 +7,59 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
+import { messages } from "@/messages/zh-TW";
 
 const summaryCards = [
   {
-    title: "Active Leads",
+    title: messages.crm.activeLeads,
     value: "12",
-    detail: "Prospects with open insurance conversations."
+    detail: "仍在洽談中的保險需求客戶。"
   },
   {
-    title: "Follow-ups Due",
+    title: messages.crm.followUpsDue,
     value: "5",
-    detail: "Customer touchpoints that need attention today."
+    detail: "今天需要處理的客戶接觸點。"
   },
   {
-    title: "Appointments",
+    title: messages.crm.appointments,
     value: "4",
-    detail: "Scheduled meetings and review calls this week."
+    detail: "本週已安排的會議與檢視通話。"
   },
   {
-    title: "Closed Deals",
+    title: messages.crm.closedDeals,
     value: "3",
-    detail: "Recently completed customer decisions."
+    detail: "近期已完成決策的客戶案件。"
   }
 ];
 
 const customers = [
   {
-    name: "Emily Chen",
-    need: "Family protection review",
-    stage: "Follow-up",
+    name: "陳怡君",
+    need: "家庭保障檢視",
+    stage: "追蹤中",
     nextFollowUpDate: "2026-07-03",
-    nextAction: "Send a simple policy comparison before Friday."
+    nextAction: "週五前提供一份簡單的保單比較。"
   },
   {
-    name: "Daniel Wu",
-    need: "Retirement income planning",
-    stage: "Appointment",
+    name: "吳志明",
+    need: "退休收入規劃",
+    stage: "已預約",
     nextFollowUpDate: "2026-07-05",
-    nextAction: "Prepare three questions for the planning call."
+    nextAction: "為規劃通話準備三個關鍵問題。"
   },
   {
-    name: "Grace Lin",
-    need: "Medical and cancer coverage",
-    stage: "Lead",
+    name: "林佳蓉",
+    need: "醫療與癌症保障",
+    stage: "潛在客戶",
     nextFollowUpDate: "2026-07-08",
-    nextAction: "Confirm current coverage gaps and family budget."
+    nextAction: "確認目前保障缺口與家庭預算。"
   }
 ];
 
 const assistantSuggestions = [
-  "Start with customers whose follow-up date is today.",
-  "Prepare one clear next action before each appointment.",
-  "Move closed conversations out of the active follow-up list."
+  "先處理追蹤日期是今天的客戶。",
+  "每次預約前先準備一個清楚的下一步。",
+  "將已結案對話移出進行中的追蹤清單。"
 ];
 
 export function CrmPage() {
@@ -67,17 +68,18 @@ export function CrmPage() {
       <section className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-medium text-primary">CRM</p>
+            <p className="text-sm font-medium text-primary">
+              {messages.navigation.crm}
+            </p>
             <h2 className="mt-2 text-3xl font-semibold tracking-normal">
-              Customer follow-ups and next actions
+              客戶追蹤與下一步行動
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-              A static CRM workspace for reviewing placeholder customers before
-              backend persistence or integrations are added.
+              在後端儲存或整合加入前，先用靜態客戶管理工作區檢視示範客戶。
             </p>
           </div>
           <Badge variant="secondary" className="w-fit">
-            Placeholder data
+            {messages.common.placeholderData}
           </Badge>
         </div>
 
@@ -97,9 +99,9 @@ export function CrmPage() {
 
         <div className="space-y-4">
           <div>
-            <h3 className="text-xl font-semibold">Customer list</h3>
+            <h3 className="text-xl font-semibold">客戶清單</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              Placeholder customer cards for daily follow-up planning.
+              用於每日追蹤規劃的示範客戶卡片。
             </p>
           </div>
 
@@ -118,23 +120,23 @@ export function CrmPage() {
                 <CardContent className="space-y-5">
                   <dl className="space-y-3 text-sm">
                     <div>
-                      <dt className="text-muted-foreground">Next follow-up date</dt>
+                      <dt className="text-muted-foreground">下次追蹤日期</dt>
                       <dd className="mt-1 font-medium">{customer.nextFollowUpDate}</dd>
                     </div>
                     <div>
-                      <dt className="text-muted-foreground">Next action</dt>
+                      <dt className="text-muted-foreground">下一步行動</dt>
                       <dd className="mt-1 font-medium leading-6">{customer.nextAction}</dd>
                     </div>
                   </dl>
 
                   <div className="grid grid-cols-3 gap-2">
                     <Button variant="secondary" size="sm">
-                      Complete
+                      完成
                     </Button>
                     <Button variant="outline" size="sm">
-                      Delay
+                      延後
                     </Button>
-                    <Button size="sm">Closed</Button>
+                    <Button size="sm">結案</Button>
                   </div>
                 </CardContent>
               </Card>
@@ -146,9 +148,9 @@ export function CrmPage() {
       <aside className="space-y-4">
         <Card className="xl:sticky xl:top-24">
           <CardHeader>
-            <CardTitle>CRM Assistant</CardTitle>
+            <CardTitle>{messages.common.crmAssistant}</CardTitle>
             <CardDescription>
-              Placeholder suggestions for customer follow-up planning.
+              用於客戶追蹤規劃的示範建議。
             </CardDescription>
           </CardHeader>
           <CardContent>

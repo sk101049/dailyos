@@ -7,91 +7,92 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
+import { messages } from "@/messages/zh-TW";
 
 const topics = [
   {
-    title: "Retirement",
-    description: "Turn retirement planning questions into short educational clips."
+    title: "退休規劃",
+    description: "把退休規劃問題轉成短影音教育內容。"
   },
   {
-    title: "Medical",
-    description: "Explain health coverage basics in plain language."
+    title: "醫療保障",
+    description: "用簡單語言說明醫療保障的基本概念。"
   },
   {
-    title: "Cancer",
-    description: "Prepare empathetic content around cancer protection planning."
+    title: "癌症保障",
+    description: "準備更有同理心的癌症保障規劃內容。"
   },
   {
-    title: "Disability",
-    description: "Create ideas about income protection and recovery planning."
+    title: "失能保障",
+    description: "發想收入保護與復原規劃相關內容。"
   },
   {
-    title: "Long-term Care",
-    description: "Frame long-term care needs for families and caregivers."
+    title: "長期照護",
+    description: "協助家庭與照顧者理解長照需求。"
   },
   {
-    title: "Family Protection",
-    description: "Help families understand risk, responsibility, and next steps."
+    title: "家庭保障",
+    description: "幫助家庭理解風險、責任與下一步。"
   }
 ];
 
 const workspaceSections = [
   {
-    title: "Title",
-    placeholder: "Example: 3 questions to ask before buying medical insurance"
+    title: "標題",
+    placeholder: "範例：購買醫療險前要問的 3 個問題"
   },
   {
-    title: "Hook",
-    placeholder: "Open with a relatable customer worry or common misconception."
+    title: messages.contentStudio.hook,
+    placeholder: "用常見的客戶擔心或迷思作為開場。"
   },
   {
-    title: "Script",
-    placeholder: "Outline the main teaching points for a 30-60 second video."
+    title: "腳本",
+    placeholder: "整理 30-60 秒影片的主要教學重點。"
   },
   {
-    title: "CTA",
-    placeholder: "Invite viewers to review their policy or prepare questions."
+    title: messages.contentStudio.cta,
+    placeholder: "邀請觀眾檢視保單或先準備想問的問題。"
   },
   {
-    title: "Hashtags",
-    placeholder: "#insurance #retirement #familyprotection"
+    title: messages.contentStudio.hashtags,
+    placeholder: "#保險 #退休規劃 #家庭保障"
   },
   {
-    title: "Cover Text",
-    placeholder: "A short cover line viewers can understand at a glance."
+    title: messages.contentStudio.coverText,
+    placeholder: "讓觀眾一眼看懂的短封面文字。"
   }
 ];
 
 const generatorControls = [
   {
-    label: "Insurance topic",
-    value: "Retirement",
+    label: "保險主題",
+    value: "退休規劃",
     options: [
-      "Retirement",
-      "Medical",
-      "Cancer",
-      "Disability",
-      "Long-term Care",
-      "Family Protection"
+      "退休規劃",
+      "醫療保障",
+      "癌症保障",
+      "失能保障",
+      "長期照護",
+      "家庭保障"
     ]
   },
   {
-    label: "Target audience",
-    value: "Young families",
-    options: ["Young families", "Working adults", "Business owners", "Retirees"]
+    label: messages.contentStudio.targetAudience,
+    value: "年輕家庭",
+    options: ["年輕家庭", "上班族", "企業主", "退休族"]
   },
   {
-    label: "Video length",
-    value: "60 seconds",
-    options: ["30 seconds", "60 seconds", "90 seconds"]
+    label: messages.contentStudio.videoLength,
+    value: "60 秒",
+    options: ["30 秒", "60 秒", "90 秒"]
   },
   {
-    label: "Tone",
-    value: "Educational",
-    options: ["Educational", "Warm", "Professional", "Urgent"]
+    label: messages.contentStudio.tone,
+    value: "教育型",
+    options: ["教育型", "溫暖", "專業", "急迫"]
   },
   {
-    label: "Platform",
+    label: messages.contentStudio.platform,
     value: "YouTube Shorts",
     options: ["YouTube Shorts", "TikTok", "Instagram Reels", "Facebook Reels"]
   }
@@ -99,62 +100,64 @@ const generatorControls = [
 
 const generatorPreviews = [
   {
-    title: "Title",
-    content: "Can your family keep the same lifestyle if income stops?"
+    title: "標題",
+    content: "如果收入中斷，你的家庭還能維持原本生活嗎？"
   },
   {
-    title: "Hook",
-    content: "Most families plan for growth, but forget to plan for interruption."
+    title: messages.contentStudio.hook,
+    content: "多數家庭會規劃成長，卻忘了規劃中斷時怎麼辦。"
   },
   {
-    title: "Script",
+    title: "腳本",
     content:
-      "Use this short placeholder script to explain one protection gap, one real-life example, and one simple next step."
+      "用這段示範腳本說明一個保障缺口、一個生活案例，以及一個簡單下一步。"
   },
   {
-    title: "CTA",
-    content: "Review your current coverage before the next major family decision."
+    title: messages.contentStudio.cta,
+    content: "在下一個重大家庭決定前，先檢視你目前的保障。"
   },
   {
-    title: "Hashtags",
-    content: "#insurance #familyprotection #financialplanning"
+    title: messages.contentStudio.hashtags,
+    content: "#保險 #家庭保障 #財務規劃"
   },
   {
-    title: "Cover Text",
-    content: "Protect the income your family depends on."
+    title: messages.contentStudio.coverText,
+    content: "守住家人依靠的收入。"
   }
 ];
 
 const promptFields = [
   {
-    label: "Goal",
-    value: "Create a short educational insurance video script."
+    label: "目標",
+    value: "建立一支保險教育短影音腳本。"
   },
   {
-    label: "Audience",
-    value: "Young families comparing protection options."
+    label: "受眾",
+    value: "正在比較保障選項的年輕家庭。"
   },
   {
-    label: "Key Message",
-    value: "Insurance planning should protect daily life, not just future goals."
+    label: "核心訊息",
+    value: "保險規劃要保護日常生活，而不只是未來目標。",
+    multiline: true
   },
   {
-    label: "Constraints",
-    value: "Keep the script under 60 seconds and avoid technical jargon."
+    label: "限制條件",
+    value: "腳本控制在 60 秒內，並避免使用艱深術語。",
+    multiline: true
   },
   {
-    label: "Call to Action",
-    value: "Invite viewers to review their current coverage."
+    label: messages.contentStudio.cta,
+    value: "邀請觀眾檢視目前的保障內容。"
   }
 ];
 
 const promptPreview =
-  "Create a short educational insurance video script for young families comparing protection options. Emphasize that insurance planning should protect daily life, not just future goals. Keep the script under 60 seconds, avoid technical jargon, and end by inviting viewers to review their current coverage.";
+  "請為正在比較保障選項的年輕家庭，建立一支保險教育短影音腳本。強調保險規劃要保護日常生活，而不只是未來目標。腳本請控制在 60 秒內，避免艱深術語，並以邀請觀眾檢視目前保障作結。";
 
 const assistantSuggestions = [
-  "Pick one customer question and turn it into a 30-second answer.",
-  "Start with one topic card, then fill the Hook before the full Script.",
-  "Keep the CTA human: invite a conversation, not an automated action."
+  "挑選一個客戶問題，轉成 30 秒回答。",
+  "先選一張主題卡，再填寫開場吸引句與完整腳本。",
+  "讓行動呼籲更有人味：邀請對話，而不是像自動化指令。"
 ];
 
 export function ContentPage() {
@@ -163,25 +166,26 @@ export function ContentPage() {
       <section className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-medium text-primary">Content Studio</p>
+            <p className="text-sm font-medium text-primary">
+              {messages.navigation.content}
+            </p>
             <h2 className="mt-2 text-3xl font-semibold tracking-normal">
-              Shape insurance ideas into short-form videos
+              把保險想法整理成短影音內容
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-              Use placeholder topic cards and script sections to plan video
-              ideas before AI generation or backend storage is added.
+              在 AI 產生與後端儲存加入前，先用示範主題卡與腳本區塊規劃影片點子。
             </p>
           </div>
           <Badge variant="secondary" className="w-fit">
-            Static workspace
+            {messages.common.staticWorkspace}
           </Badge>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Topic selector</CardTitle>
+            <CardTitle>主題選擇器</CardTitle>
             <CardDescription>
-              Choose an insurance theme to frame the next video idea.
+              選擇一個保險主題，作為下一支影片點子的框架。
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -202,14 +206,13 @@ export function ContentPage() {
           <CardHeader>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="space-y-1">
-                <CardTitle>AI Script Generator</CardTitle>
+                <CardTitle>{messages.contentStudio.aiScriptGenerator}</CardTitle>
                 <CardDescription>
-                  Static controls for planning future AI-generated short-form
-                  insurance scripts.
+                  用靜態控制項規劃未來的 AI 保險短影音腳本。
                 </CardDescription>
               </div>
               <Badge variant="outline" className="w-fit">
-                UI only
+                {messages.common.uiOnly}
               </Badge>
             </div>
           </CardHeader>
@@ -238,7 +241,7 @@ export function ContentPage() {
               ))}
             </div>
 
-            <Button>Generate Script</Button>
+            <Button>{messages.contentStudio.generateScript}</Button>
 
             <div className="grid gap-4 lg:grid-cols-2">
               {generatorPreviews.map((preview) => (
@@ -246,7 +249,7 @@ export function ContentPage() {
                   <CardHeader>
                     <div className="flex items-start justify-between gap-3">
                       <CardTitle>{preview.title}</CardTitle>
-                      <Badge variant="outline">Preview</Badge>
+                      <Badge variant="outline">{messages.common.preview}</Badge>
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -264,12 +267,12 @@ export function ContentPage() {
           <CardHeader>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="space-y-1">
-                <CardTitle>Prompt Builder</CardTitle>
+                <CardTitle>{messages.contentStudio.promptBuilder}</CardTitle>
                 <CardDescription>
-                  Static editable fields for shaping a future AI script prompt.
+                  用靜態可編輯欄位整理未來的 AI 腳本提示詞。
                 </CardDescription>
               </div>
-              <Button variant="outline">Copy Prompt</Button>
+              <Button variant="outline">{messages.contentStudio.copyPrompt}</Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
@@ -277,7 +280,7 @@ export function ContentPage() {
               {promptFields.map((field) => (
                 <label key={field.label} className="space-y-2">
                   <span className="text-sm font-medium">{field.label}</span>
-                  {field.label === "Constraints" || field.label === "Key Message" ? (
+                  {field.multiline ? (
                     <textarea
                       className="min-h-28 w-full resize-none rounded-md border bg-background px-3 py-2 text-sm leading-6 outline-none transition-colors placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
                       defaultValue={field.value}
@@ -294,8 +297,8 @@ export function ContentPage() {
 
             <div className="rounded-lg border bg-secondary/40 p-4">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold">Prompt preview</p>
-                <Badge variant="outline">Read-only</Badge>
+                <p className="text-sm font-semibold">提示詞預覽</p>
+                <Badge variant="outline">{messages.common.readOnly}</Badge>
               </div>
               <p className="mt-3 text-sm leading-6 text-muted-foreground">
                 {promptPreview}
@@ -306,10 +309,9 @@ export function ContentPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Script workspace</CardTitle>
+            <CardTitle>腳本工作區</CardTitle>
             <CardDescription>
-              Placeholder sections for planning the video before real generation
-              exists.
+              在真正產生腳本前，先用示範區塊規劃影片內容。
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -319,7 +321,7 @@ export function ContentPage() {
                   <CardHeader>
                     <div className="flex items-start justify-between gap-3">
                       <CardTitle>{section.title}</CardTitle>
-                      <Badge variant="outline">Draft</Badge>
+                      <Badge variant="outline">{messages.common.draft}</Badge>
                     </div>
                   </CardHeader>
                   <CardContent>
@@ -337,9 +339,9 @@ export function ContentPage() {
       <aside className="space-y-4">
         <Card className="xl:sticky xl:top-24">
           <CardHeader>
-            <CardTitle>Content Assistant</CardTitle>
+            <CardTitle>{messages.common.contentAssistant}</CardTitle>
             <CardDescription>
-              Placeholder suggestions for planning video ideas.
+              用於規劃影片點子的示範建議。
             </CardDescription>
           </CardHeader>
           <CardContent>

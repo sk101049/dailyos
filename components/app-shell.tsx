@@ -4,11 +4,12 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { messages } from "@/messages/zh-TW";
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard", marker: "D" },
-  { href: "/content", label: "Content Studio", marker: "C" },
-  { href: "/crm", label: "CRM", marker: "R" }
+  { href: "/dashboard", label: messages.navigation.dashboard, marker: "D" },
+  { href: "/content", label: messages.navigation.content, marker: "C" },
+  { href: "/crm", label: messages.navigation.crm, marker: "R" }
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -23,7 +24,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="space-y-1 px-2">
           <p className="text-xl font-semibold">DailyOS</p>
           <p className="text-sm leading-6 text-muted-foreground">
-            Personal insurance workspace
+            {messages.app.tagline}
           </p>
         </div>
 
@@ -64,11 +65,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <header className="sticky top-0 z-20 border-b bg-background/95 backdrop-blur">
           <div className="flex min-h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
             <div>
-              <p className="text-sm font-medium text-muted-foreground">Daily workspace</p>
+              <p className="text-sm font-medium text-muted-foreground">
+                {messages.app.headerLabel}
+              </p>
               <h1 className="text-lg font-semibold">{currentItem.label}</h1>
             </div>
             <Button variant="outline" size="sm">
-              Today
+              {messages.app.today}
             </Button>
           </div>
         </header>
