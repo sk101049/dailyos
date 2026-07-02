@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,6 +11,23 @@ import {
   CardTitle
 } from "@/components/ui/card";
 import { messages } from "@/messages/zh-TW";
+
+type ScriptGenerationForm = {
+  topic: string;
+  targetAudience: string;
+  videoLength: string;
+  tone: string;
+  platform: string;
+};
+
+type ScriptPreviewKey = "title" | "hook" | "script" | "cta" | "hashtags" | "coverText";
+
+type GeneratedScript = Record<ScriptPreviewKey, string>;
+
+type ScriptApiResponse = {
+  script?: GeneratedScript;
+  error?: string;
+};
 
 const topics = [
   {
@@ -65,65 +85,60 @@ const workspaceSections = [
 
 const generatorControls = [
   {
+    key: "topic",
     label: "保險主題",
-    value: "退休規劃",
-    options: [
-      "退休規劃",
-      "醫療保障",
-      "癌症保障",
-      "失能保障",
-      "長期照護",
-      "家庭保障"
-    ]
+    options: ["退休規劃", "醫療保障", "癌症保障", "失能保障", "長期照護", "家庭保障"]
   },
   {
+    key: "targetAudience",
     label: messages.contentStudio.targetAudience,
-    value: "年輕家庭",
     options: ["年輕家庭", "上班族", "企業主", "退休族"]
   },
   {
+    key: "videoLength",
     label: messages.contentStudio.videoLength,
-    value: "60 秒",
     options: ["30 秒", "60 秒", "90 秒"]
   },
   {
+    key: "tone",
     label: messages.contentStudio.tone,
-    value: "教育型",
     options: ["教育型", "溫暖", "專業", "急迫"]
   },
   {
+    key: "platform",
     label: messages.contentStudio.platform,
-    value: "YouTube Shorts",
     options: ["YouTube Shorts", "TikTok", "Instagram Reels", "Facebook Reels"]
   }
-];
+] satisfies {
+  key: keyof ScriptGenerationForm;
+  label: string;
+  options: string[];
+}[];
 
-const generatorPreviews = [
-  {
-    title: "標題",
-    content: "如果收入中斷，你的家庭還能維持原本生活嗎？"
-  },
-  {
-    title: messages.contentStudio.hook,
-    content: "多數家庭會規劃成長，卻忘了規劃中斷時怎麼辦。"
-  },
-  {
-    title: "腳本",
-    content:
-      "用這段示範腳本說明一個保障缺口、一個生活案例，以及一個簡單下一步。"
-  },
-  {
-    title: messages.contentStudio.cta,
-    content: "在下一個重大家庭決定前，先檢視你目前的保障。"
-  },
-  {
-    title: messages.contentStudio.hashtags,
-    content: "#保險 #家庭保障 #財務規劃"
-  },
-  {
-    title: messages.contentStudio.coverText,
-    content: "守住家人依靠的收入。"
-  }
+const initialFormValues: ScriptGenerationForm = {
+  topic: "退休規劃",
+  targetAudience: "年輕家庭",
+  videoLength: "60 秒",
+  tone: "教育型",
+  platform: "YouTube Shorts"
+};
+
+const initialGeneratedScript: GeneratedScript = {
+  title: "如果收入中斷，你的家庭還能維持原本生活嗎？",
+  hook: "多數家庭會規劃成長，卻忘了規劃中斷時怎麼辦。",
+  script: "用這段示範腳本說明一個保障缺口、一個生活案例，以及一個簡單下一步。",
+  cta: "在下一個重大家庭決定前，先檢視你目前的保障。",
+  hashtags: "#保險 #家庭保障 #財務規劃",
+  coverText: "守住家人依靠的收入。"
+};
+
+const previewLabels: { key: ScriptPreviewKey; title: string }[] = [
+  { key: "title", title: "標題" },
+  { key: "hook", title: messages.contentStudio.hook },
+  { key: "script", title: "腳本" },
+  { key: "cta", title: messages.contentStudio.cta },
+  { key: "hashtags", title: messages.contentStudio.hashtags },
+  { key: "coverText", title: messages.contentStudio.coverText }
 ];
 
 const promptFields = [
@@ -161,6 +176,43 @@ const assistantSuggestions = [
 ];
 
 export function ContentPage() {
+  const [formValues, setFormValues] =
+    useState<ScriptGenerationForm>(initialFormValues);
+  const [generatedScript, setGeneratedScript] =
+    useState<GeneratedScript>(initialGeneratedScript);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleGenerateScript() {
+    setIsGenerating(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/script", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(formValues)
+      });
+      const payload = (await response.json()) as ScriptApiResponse;
+
+      if (!response.ok || !payload.script) {
+        throw new Error(payload.error ?? "無法產生腳本，請稍後再試。");
+      }
+
+      setGeneratedScript(payload.script);
+    } catch (caughtError) {
+      setError(
+        caughtError instanceof Error
+          ? caughtError.message
+          : "無法產生腳本，請稍後再試。"
+      );
+    } finally {
+      setIsGenerating(false);
+    }
+  }
+
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
       <section className="space-y-6">
@@ -208,44 +260,58 @@ export function ContentPage() {
               <div className="space-y-1">
                 <CardTitle>{messages.contentStudio.aiScriptGenerator}</CardTitle>
                 <CardDescription>
-                  用靜態控制項規劃未來的 AI 保險短影音腳本。
+                  用目前欄位呼叫 OpenAI，產生保險短影音腳本預覽。
                 </CardDescription>
               </div>
               <Badge variant="outline" className="w-fit">
-                {messages.common.uiOnly}
+                OpenAI
               </Badge>
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
               {generatorControls.map((control) => (
-                <div
-                  key={control.label}
+                <label
+                  key={control.key}
                   className="rounded-lg border bg-background p-4"
                 >
-                  <p className="text-xs font-medium uppercase text-muted-foreground">
+                  <span className="text-xs font-medium text-muted-foreground">
                     {control.label}
-                  </p>
-                  <p className="mt-2 text-sm font-semibold">{control.value}</p>
-                  <div className="mt-3 flex flex-wrap gap-1.5">
+                  </span>
+                  <select
+                    className="mt-2 h-10 w-full rounded-md border bg-background px-3 text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    value={formValues[control.key]}
+                    onChange={(event) =>
+                      setFormValues((current) => ({
+                        ...current,
+                        [control.key]: event.target.value
+                      }))
+                    }
+                  >
                     {control.options.map((option) => (
-                      <Badge
-                        key={option}
-                        variant={option === control.value ? "secondary" : "outline"}
-                      >
+                      <option key={option} value={option}>
                         {option}
-                      </Badge>
+                      </option>
                     ))}
-                  </div>
-                </div>
+                  </select>
+                </label>
               ))}
             </div>
 
-            <Button>{messages.contentStudio.generateScript}</Button>
+            <div className="space-y-3">
+              <Button onClick={handleGenerateScript} disabled={isGenerating}>
+                {isGenerating ? "產生中..." : messages.contentStudio.generateScript}
+              </Button>
+              {error ? (
+                <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  {error}
+                </p>
+              ) : null}
+            </div>
 
             <div className="grid gap-4 lg:grid-cols-2">
-              {generatorPreviews.map((preview) => (
-                <Card key={preview.title} className="shadow-none">
+              {previewLabels.map((preview) => (
+                <Card key={preview.key} className="shadow-none">
                   <CardHeader>
                     <div className="flex items-start justify-between gap-3">
                       <CardTitle>{preview.title}</CardTitle>
@@ -254,7 +320,7 @@ export function ContentPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="min-h-24 rounded-md border bg-secondary/40 p-4 text-sm leading-6">
-                      {preview.content}
+                      {generatedScript[preview.key]}
                     </div>
                   </CardContent>
                 </Card>
