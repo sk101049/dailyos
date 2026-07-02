@@ -125,6 +125,32 @@ const generatorPreviews = [
   }
 ];
 
+const promptFields = [
+  {
+    label: "Goal",
+    value: "Create a short educational insurance video script."
+  },
+  {
+    label: "Audience",
+    value: "Young families comparing protection options."
+  },
+  {
+    label: "Key Message",
+    value: "Insurance planning should protect daily life, not just future goals."
+  },
+  {
+    label: "Constraints",
+    value: "Keep the script under 60 seconds and avoid technical jargon."
+  },
+  {
+    label: "Call to Action",
+    value: "Invite viewers to review their current coverage."
+  }
+];
+
+const promptPreview =
+  "Create a short educational insurance video script for young families comparing protection options. Emphasize that insurance planning should protect daily life, not just future goals. Keep the script under 60 seconds, avoid technical jargon, and end by inviting viewers to review their current coverage.";
+
 const assistantSuggestions = [
   "Pick one customer question and turn it into a 30-second answer.",
   "Start with one topic card, then fill the Hook before the full Script.",
@@ -230,6 +256,50 @@ export function ContentPage() {
                   </CardContent>
                 </Card>
               ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="space-y-1">
+                <CardTitle>Prompt Builder</CardTitle>
+                <CardDescription>
+                  Static editable fields for shaping a future AI script prompt.
+                </CardDescription>
+              </div>
+              <Button variant="outline">Copy Prompt</Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid gap-4 lg:grid-cols-2">
+              {promptFields.map((field) => (
+                <label key={field.label} className="space-y-2">
+                  <span className="text-sm font-medium">{field.label}</span>
+                  {field.label === "Constraints" || field.label === "Key Message" ? (
+                    <textarea
+                      className="min-h-28 w-full resize-none rounded-md border bg-background px-3 py-2 text-sm leading-6 outline-none transition-colors placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                      defaultValue={field.value}
+                    />
+                  ) : (
+                    <input
+                      className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                      defaultValue={field.value}
+                    />
+                  )}
+                </label>
+              ))}
+            </div>
+
+            <div className="rounded-lg border bg-secondary/40 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-semibold">Prompt preview</p>
+                <Badge variant="outline">Read-only</Badge>
+              </div>
+              <p className="mt-3 text-sm leading-6 text-muted-foreground">
+                {promptPreview}
+              </p>
             </div>
           </CardContent>
         </Card>
