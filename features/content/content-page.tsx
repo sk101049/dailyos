@@ -175,6 +175,29 @@ const assistantSuggestions = [
   "讓行動呼籲更有人味：邀請對話，而不是像自動化指令。"
 ];
 
+function buildGptPrompt(formValues: ScriptGenerationForm) {
+  return [
+    "請你擔任保險內容策略顧問，協助我產生一支繁體中文短影音腳本。",
+    "",
+    "請根據以下設定撰寫內容：",
+    `- 保險主題：${formValues.topic}`,
+    `- 目標客群：${formValues.targetAudience}`,
+    `- 影片長度：${formValues.videoLength}`,
+    `- 語氣風格：${formValues.tone}`,
+    `- 發布平台：${formValues.platform}`,
+    "",
+    "請回傳以下欄位，並使用清楚的段落標題：",
+    "1. 標題",
+    "2. 開場吸引句",
+    "3. 腳本",
+    "4. 行動呼籲",
+    "5. 標籤",
+    "6. 封面文字",
+    "",
+    "請讓內容適合保險專業人士日常使用，避免誇大承諾，語氣要可信、清楚、有同理心。"
+  ].join("\n");
+}
+
 export function ContentPage() {
   const [formValues, setFormValues] =
     useState<ScriptGenerationForm>(initialFormValues);
@@ -182,6 +205,8 @@ export function ContentPage() {
     useState<GeneratedScript>(initialGeneratedScript);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [copyMessage, setCopyMessage] = useState<string | null>(null);
+  const gptPrompt = buildGptPrompt(formValues);
 
   async function handleGenerateScript() {
     setIsGenerating(true);
@@ -210,6 +235,20 @@ export function ContentPage() {
       );
     } finally {
       setIsGenerating(false);
+    }
+  }
+
+  async function handleCopyGptPrompt() {
+    if (!navigator.clipboard?.writeText) {
+      setCopyMessage("目前瀏覽器不支援自動複製，請手動選取並複製 GPT Prompt。");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(gptPrompt);
+      setCopyMessage("已複製 GPT Prompt。");
+    } catch {
+      setCopyMessage("無法自動複製，請手動選取並複製 GPT Prompt。");
     }
   }
 
@@ -281,12 +320,13 @@ export function ContentPage() {
                   <select
                     className="mt-2 h-10 w-full rounded-md border bg-background px-3 text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     value={formValues[control.key]}
-                    onChange={(event) =>
+                    onChange={(event) => {
+                      setCopyMessage(null);
                       setFormValues((current) => ({
                         ...current,
                         [control.key]: event.target.value
-                      }))
-                    }
+                      }));
+                    }}
                   >
                     {control.options.map((option) => (
                       <option key={option} value={option}>
@@ -326,6 +366,38 @@ export function ContentPage() {
                 </Card>
               ))}
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="space-y-1">
+                <CardTitle>GPT 模式</CardTitle>
+                <CardDescription>
+                  根據目前腳本產生器欄位，建立可貼到 ChatGPT 的繁體中文 Prompt。
+                </CardDescription>
+              </div>
+              <Button variant="outline" onClick={handleCopyGptPrompt}>
+                複製 GPT Prompt
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="rounded-lg border bg-secondary/40 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-semibold">GPT Prompt 預覽</p>
+                <Badge variant="outline">{messages.common.preview}</Badge>
+              </div>
+              <pre className="mt-3 whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground">
+                {gptPrompt}
+              </pre>
+            </div>
+            {copyMessage ? (
+              <p className="rounded-md border bg-background px-3 py-2 text-sm text-muted-foreground">
+                {copyMessage}
+              </p>
+            ) : null}
           </CardContent>
         </Card>
 
