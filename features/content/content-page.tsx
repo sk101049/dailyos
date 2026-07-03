@@ -31,6 +31,9 @@ type ScriptApiResponse = {
 
 type ScriptStatus = "草稿" | "已完成" | "已發布";
 
+type ThumbnailStyle = "寫實" | "插畫" | "3D" | "動漫";
+type ThumbnailRatio = "9:16" | "16:9" | "1:1";
+
 type SavedScript = GeneratedScript & {
   id: string;
   title: string;
@@ -221,6 +224,35 @@ function buildGptPrompt(formValues: ScriptGenerationForm) {
   ].join("\n");
 }
 
+function buildThumbnailPrompt({
+  script,
+  formValues,
+  style,
+  ratio,
+  includePerson
+}: {
+  script: GeneratedScript;
+  formValues: ScriptGenerationForm;
+  style: ThumbnailStyle;
+  ratio: ThumbnailRatio;
+  includePerson: boolean;
+}) {
+  return [
+    "請產生一張社群短影音縮圖的 AI 圖像 Prompt。",
+    `主題：${formValues.topic}`,
+    `目標客群：${formValues.targetAudience}`,
+    `影片標題：${script.title}`,
+    `開場重點：${script.hook}`,
+    `視覺風格：${style}`,
+    `圖片比例：${ratio}`,
+    includePerson
+      ? "畫面包含一位可信、親切的保險顧問或目標客群人物。"
+      : "畫面不包含人物，聚焦在清楚的視覺隱喻、文字空間與主題物件。",
+    "畫面要乾淨、有高對比、適合 YouTube Shorts 和社群平台縮圖。",
+    "保留明確文字區域，避免雜亂背景，不要加入品牌 logo。"
+  ].join("\n");
+}
+
 function parseGptOutput(text: string) {
   const parsed: Partial<GeneratedScript> = {};
   let currentKey: ScriptPreviewKey | null = null;
@@ -270,7 +302,18 @@ export function ContentPage() {
   const [scriptStatus, setScriptStatus] = useState<ScriptStatus>("草稿");
   const [savedScripts, setSavedScripts] = useState<SavedScript[]>([]);
   const [libraryMessage, setLibraryMessage] = useState<string | null>(null);
+  const [thumbnailStyle, setThumbnailStyle] = useState<ThumbnailStyle>("寫實");
+  const [thumbnailRatio, setThumbnailRatio] = useState<ThumbnailRatio>("9:16");
+  const [thumbnailIncludePerson, setThumbnailIncludePerson] = useState(true);
+  const [thumbnailCopyMessage, setThumbnailCopyMessage] = useState<string | null>(null);
   const gptPrompt = buildGptPrompt(formValues);
+  const thumbnailPrompt = buildThumbnailPrompt({
+    script: generatedScript,
+    formValues,
+    style: thumbnailStyle,
+    ratio: thumbnailRatio,
+    includePerson: thumbnailIncludePerson
+  });
 
   useEffect(() => {
     const saved = window.localStorage.getItem(SCRIPT_LIBRARY_STORAGE_KEY);
@@ -336,6 +379,20 @@ export function ContentPage() {
       setCopyMessage("已複製 GPT Prompt。");
     } catch {
       setCopyMessage("無法自動複製，請手動選取並複製 GPT Prompt。");
+    }
+  }
+
+  async function handleCopyThumbnailPrompt() {
+    if (!navigator.clipboard?.writeText) {
+      setThumbnailCopyMessage("目前瀏覽器不支援自動複製，請手動選取並複製縮圖 Prompt。");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(thumbnailPrompt);
+      setThumbnailCopyMessage("已複製縮圖 Prompt。");
+    } catch {
+      setThumbnailCopyMessage("無法自動複製，請手動選取並複製縮圖 Prompt。");
     }
   }
 
@@ -439,6 +496,83 @@ export function ContentPage() {
                 </Card>
               ))}
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="space-y-1">
+                <CardTitle>縮圖 Prompt Builder</CardTitle>
+                <CardDescription>
+                  根據目前腳本標題、開場、主題與目標客群建立縮圖圖像 Prompt。
+                </CardDescription>
+              </div>
+              <Button variant="outline" onClick={handleCopyThumbnailPrompt}>
+                複製縮圖 Prompt
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-3 md:grid-cols-3">
+              <label className="space-y-2">
+                <span className="text-sm font-medium">風格</span>
+                <select
+                  className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  value={thumbnailStyle}
+                  onChange={(event) => {
+                    setThumbnailCopyMessage(null);
+                    setThumbnailStyle(event.target.value as ThumbnailStyle);
+                  }}
+                >
+                  <option value="寫實">寫實</option>
+                  <option value="插畫">插畫</option>
+                  <option value="3D">3D</option>
+                  <option value="動漫">動漫</option>
+                </select>
+              </label>
+              <label className="space-y-2">
+                <span className="text-sm font-medium">比例</span>
+                <select
+                  className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  value={thumbnailRatio}
+                  onChange={(event) => {
+                    setThumbnailCopyMessage(null);
+                    setThumbnailRatio(event.target.value as ThumbnailRatio);
+                  }}
+                >
+                  <option value="9:16">9:16</option>
+                  <option value="16:9">16:9</option>
+                  <option value="1:1">1:1</option>
+                </select>
+              </label>
+              <label className="flex items-center gap-3 rounded-md border bg-background px-3 py-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={thumbnailIncludePerson}
+                  onChange={(event) => {
+                    setThumbnailCopyMessage(null);
+                    setThumbnailIncludePerson(event.target.checked);
+                  }}
+                />
+                包含人物
+              </label>
+            </div>
+
+            <div className="rounded-lg border bg-secondary/40 p-4">
+              <div className="flex items-center justify-between gap-3">
+                <p className="text-sm font-semibold">縮圖 Prompt 預覽</p>
+                <Badge variant="outline">{messages.common.preview}</Badge>
+              </div>
+              <pre className="mt-3 whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground">
+                {thumbnailPrompt}
+              </pre>
+            </div>
+            {thumbnailCopyMessage ? (
+              <p className="rounded-md border bg-background px-3 py-2 text-sm text-muted-foreground">
+                {thumbnailCopyMessage}
+              </p>
+            ) : null}
           </CardContent>
         </Card>
 
