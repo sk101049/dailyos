@@ -394,6 +394,13 @@ export function ContentPage() {
     setLibraryMessage("已刪除腳本。");
   }
 
+  function handleUpdatePreviewField(key: ScriptPreviewKey, value: string) {
+    setGeneratedScript((current) => ({
+      ...current,
+      [key]: value
+    }));
+  }
+
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
       <section className="space-y-6">
@@ -607,13 +614,32 @@ export function ContentPage() {
                   <CardHeader>
                     <div className="flex items-start justify-between gap-3">
                       <CardTitle>{preview.title}</CardTitle>
-                      <Badge variant="outline">{messages.common.preview}</Badge>
+                      <Badge variant="outline">可編輯預覽</Badge>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <div className="min-h-24 rounded-md border bg-secondary/40 p-4 text-sm leading-6">
-                      {generatedScript[preview.key]}
-                    </div>
+                    <label className="sr-only" htmlFor={`script-preview-${preview.key}`}>
+                      {preview.title}
+                    </label>
+                    {preview.key === "script" ? (
+                      <textarea
+                        id={`script-preview-${preview.key}`}
+                        className="min-h-32 w-full resize-y rounded-md border bg-secondary/40 p-4 text-sm leading-6 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        value={generatedScript[preview.key]}
+                        onChange={(event) =>
+                          handleUpdatePreviewField(preview.key, event.target.value)
+                        }
+                      />
+                    ) : (
+                      <input
+                        id={`script-preview-${preview.key}`}
+                        className="h-12 w-full rounded-md border bg-secondary/40 px-4 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        value={generatedScript[preview.key]}
+                        onChange={(event) =>
+                          handleUpdatePreviewField(preview.key, event.target.value)
+                        }
+                      />
+                    )}
                   </CardContent>
                 </Card>
               ))}
