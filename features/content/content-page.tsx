@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -28,6 +28,20 @@ type ScriptApiResponse = {
   script?: GeneratedScript;
   error?: string;
 };
+
+type ScriptStatus = "草稿" | "已完成" | "已發布";
+
+type SavedScript = GeneratedScript & {
+  id: string;
+  title: string;
+  topic: string;
+  targetAudience: string;
+  status: ScriptStatus;
+  createdAt: string;
+  updatedAt: string;
+};
+
+const SCRIPT_LIBRARY_STORAGE_KEY = "dailyos-script-library";
 
 const gptOutputHeadings: { key: ScriptPreviewKey; labels: string[] }[] = [
   { key: "title", labels: ["標題"] },
@@ -253,7 +267,33 @@ export function ContentPage() {
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
   const [gptOutput, setGptOutput] = useState("");
   const [gptImportMessage, setGptImportMessage] = useState<string | null>(null);
+  const [scriptStatus, setScriptStatus] = useState<ScriptStatus>("草稿");
+  const [savedScripts, setSavedScripts] = useState<SavedScript[]>([]);
+  const [libraryMessage, setLibraryMessage] = useState<string | null>(null);
   const gptPrompt = buildGptPrompt(formValues);
+
+  useEffect(() => {
+    const saved = window.localStorage.getItem(SCRIPT_LIBRARY_STORAGE_KEY);
+    if (!saved) {
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(saved) as SavedScript[];
+      if (Array.isArray(parsed)) {
+        setSavedScripts(parsed);
+      }
+    } catch {
+      setLibraryMessage("無法讀取腳本庫，請稍後再試。");
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(
+      SCRIPT_LIBRARY_STORAGE_KEY,
+      JSON.stringify(savedScripts)
+    );
+  }, [savedScripts]);
 
   async function handleGenerateScript() {
     setIsGenerating(true);
@@ -314,6 +354,46 @@ export function ContentPage() {
     setGptImportMessage("已套用可辨識的 GPT 結果到預覽卡片。");
   }
 
+  function handleSaveScript() {
+    const now = new Date().toISOString();
+    const savedScript: SavedScript = {
+      id: crypto.randomUUID(),
+      ...generatedScript,
+      title: generatedScript.title,
+      topic: formValues.topic,
+      targetAudience: formValues.targetAudience,
+      status: scriptStatus,
+      createdAt: now,
+      updatedAt: now
+    };
+
+    setSavedScripts((current) => [savedScript, ...current]);
+    setLibraryMessage("已儲存到腳本庫。");
+  }
+
+  function handleLoadScript(script: SavedScript) {
+    setGeneratedScript({
+      title: script.title,
+      hook: script.hook,
+      script: script.script,
+      cta: script.cta,
+      hashtags: script.hashtags,
+      coverText: script.coverText
+    });
+    setFormValues((current) => ({
+      ...current,
+      topic: script.topic,
+      targetAudience: script.targetAudience
+    }));
+    setScriptStatus(script.status);
+    setLibraryMessage("已載入腳本到預覽卡片。");
+  }
+
+  function handleDeleteScript(id: string) {
+    setSavedScripts((current) => current.filter((script) => script.id !== id));
+    setLibraryMessage("已刪除腳本。");
+  }
+
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
       <section className="space-y-6">
@@ -352,6 +432,84 @@ export function ContentPage() {
                 </Card>
               ))}
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="space-y-1">
+                <CardTitle>腳本庫</CardTitle>
+                <CardDescription>
+                  將目前預覽卡片儲存在此瀏覽器，稍後可載入或刪除。
+                </CardDescription>
+              </div>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <select
+                  className="h-10 rounded-md border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  value={scriptStatus}
+                  onChange={(event) =>
+                    setScriptStatus(event.target.value as ScriptStatus)
+                  }
+                >
+                  <option value="草稿">草稿</option>
+                  <option value="已完成">已完成</option>
+                  <option value="已發布">已發布</option>
+                </select>
+                <Button onClick={handleSaveScript}>儲存目前腳本</Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {libraryMessage ? (
+              <p className="rounded-md border bg-background px-3 py-2 text-sm text-muted-foreground">
+                {libraryMessage}
+              </p>
+            ) : null}
+            {savedScripts.length === 0 ? (
+              <div className="rounded-lg border border-dashed bg-muted/40 p-4 text-sm text-muted-foreground">
+                尚未儲存腳本。
+              </div>
+            ) : (
+              <div className="grid gap-4 lg:grid-cols-2">
+                {savedScripts.map((script) => (
+                  <Card key={script.id} className="shadow-none">
+                    <CardHeader>
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="space-y-1">
+                          <CardTitle>{script.title}</CardTitle>
+                          <CardDescription>
+                            {script.topic} / {script.targetAudience}
+                          </CardDescription>
+                        </div>
+                        <Badge variant="outline">{script.status}</Badge>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <p className="line-clamp-3 text-sm leading-6 text-muted-foreground">
+                        {script.hook}
+                      </p>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => handleLoadScript(script)}
+                        >
+                          載入
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteScript(script.id)}
+                        >
+                          刪除
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 
