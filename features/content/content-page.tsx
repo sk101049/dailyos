@@ -34,6 +34,15 @@ type ScriptStatus = "草稿" | "已完成" | "已發布";
 type ThumbnailStyle = "寫實" | "插畫" | "3D" | "動漫";
 type ThumbnailRatio = "9:16" | "16:9" | "1:1";
 
+type StoryboardRow = {
+  id: string;
+  shot: string;
+  visual: string;
+  narration: string;
+  subtitle: string;
+  broll: string;
+};
+
 type SavedScript = GeneratedScript & {
   id: string;
   title: string;
@@ -253,6 +262,49 @@ function buildThumbnailPrompt({
   ].join("\n");
 }
 
+function buildInitialStoryboard(script: GeneratedScript): StoryboardRow[] {
+  return [
+    {
+      id: crypto.randomUUID(),
+      shot: "1",
+      visual: `用強烈標題呈現：${script.title}`,
+      narration: script.hook,
+      subtitle: script.hook,
+      broll: "人物看著鏡頭或生活情境特寫"
+    },
+    {
+      id: crypto.randomUUID(),
+      shot: "2",
+      visual: "用簡單畫面說明主要觀念",
+      narration: script.script,
+      subtitle: script.title,
+      broll: "保單、家庭、桌面規劃畫面"
+    },
+    {
+      id: crypto.randomUUID(),
+      shot: "3",
+      visual: "收尾畫面搭配明確行動提示",
+      narration: script.cta,
+      subtitle: script.cta,
+      broll: "手機訊息、預約諮詢或整理資料畫面"
+    }
+  ];
+}
+
+function formatStoryboard(rows: StoryboardRow[]) {
+  return rows
+    .map((row) =>
+      [
+        `鏡次：${row.shot}`,
+        `畫面描述：${row.visual}`,
+        `旁白：${row.narration}`,
+        `字幕：${row.subtitle}`,
+        `B-roll：${row.broll}`
+      ].join("\n")
+    )
+    .join("\n\n");
+}
+
 function parseGptOutput(text: string) {
   const parsed: Partial<GeneratedScript> = {};
   let currentKey: ScriptPreviewKey | null = null;
@@ -306,6 +358,10 @@ export function ContentPage() {
   const [thumbnailRatio, setThumbnailRatio] = useState<ThumbnailRatio>("9:16");
   const [thumbnailIncludePerson, setThumbnailIncludePerson] = useState(true);
   const [thumbnailCopyMessage, setThumbnailCopyMessage] = useState<string | null>(null);
+  const [storyboardRows, setStoryboardRows] = useState<StoryboardRow[]>(() =>
+    buildInitialStoryboard(initialGeneratedScript)
+  );
+  const [storyboardCopyMessage, setStoryboardCopyMessage] = useState<string | null>(null);
   const gptPrompt = buildGptPrompt(formValues);
   const thumbnailPrompt = buildThumbnailPrompt({
     script: generatedScript,
@@ -393,6 +449,58 @@ export function ContentPage() {
       setThumbnailCopyMessage("已複製縮圖 Prompt。");
     } catch {
       setThumbnailCopyMessage("無法自動複製，請手動選取並複製縮圖 Prompt。");
+    }
+  }
+
+  function handleBuildStoryboard() {
+    setStoryboardRows(buildInitialStoryboard(generatedScript));
+    setStoryboardCopyMessage("已從目前腳本更新分鏡。");
+  }
+
+  function handleUpdateStoryboardRow(
+    id: string,
+    field: keyof Omit<StoryboardRow, "id">,
+    value: string
+  ) {
+    setStoryboardRows((rows) =>
+      rows.map((row) => (row.id === id ? { ...row, [field]: value } : row))
+    );
+    setStoryboardCopyMessage(null);
+  }
+
+  function handleAddStoryboardRow() {
+    setStoryboardRows((rows) => [
+      ...rows,
+      {
+        id: crypto.randomUUID(),
+        shot: String(rows.length + 1),
+        visual: "",
+        narration: "",
+        subtitle: "",
+        broll: ""
+      }
+    ]);
+    setStoryboardCopyMessage(null);
+  }
+
+  function handleDeleteStoryboardRow(id: string) {
+    setStoryboardRows((rows) => rows.filter((row) => row.id !== id));
+    setStoryboardCopyMessage(null);
+  }
+
+  async function handleCopyStoryboard() {
+    const text = formatStoryboard(storyboardRows);
+
+    if (!navigator.clipboard?.writeText) {
+      setStoryboardCopyMessage("目前瀏覽器不支援自動複製，請手動選取並複製分鏡。");
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setStoryboardCopyMessage("已複製分鏡。");
+    } catch {
+      setStoryboardCopyMessage("無法自動複製，請手動選取並複製分鏡。");
     }
   }
 
@@ -496,6 +604,101 @@ export function ContentPage() {
                 </Card>
               ))}
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="space-y-1">
+                <CardTitle>分鏡腳本</CardTitle>
+                <CardDescription>
+                  將目前腳本整理成可編輯的短影音分鏡。
+                </CardDescription>
+              </div>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <Button variant="outline" onClick={handleBuildStoryboard}>
+                  從目前腳本建立分鏡
+                </Button>
+                <Button variant="outline" onClick={handleCopyStoryboard}>
+                  複製分鏡
+                </Button>
+                <Button onClick={handleAddStoryboardRow}>新增鏡次</Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {storyboardRows.map((row) => (
+              <div
+                key={row.id}
+                className="grid gap-3 rounded-lg border bg-background p-4 lg:grid-cols-[80px_minmax(0,1fr)_minmax(0,1fr)]"
+              >
+                <label className="space-y-2">
+                  <span className="text-sm font-medium">鏡次</span>
+                  <input
+                    className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    value={row.shot}
+                    onChange={(event) =>
+                      handleUpdateStoryboardRow(row.id, "shot", event.target.value)
+                    }
+                  />
+                </label>
+                <label className="space-y-2">
+                  <span className="text-sm font-medium">畫面描述</span>
+                  <textarea
+                    className="min-h-24 w-full resize-y rounded-md border bg-background px-3 py-2 text-sm leading-6 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    value={row.visual}
+                    onChange={(event) =>
+                      handleUpdateStoryboardRow(row.id, "visual", event.target.value)
+                    }
+                  />
+                </label>
+                <label className="space-y-2">
+                  <span className="text-sm font-medium">旁白</span>
+                  <textarea
+                    className="min-h-24 w-full resize-y rounded-md border bg-background px-3 py-2 text-sm leading-6 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    value={row.narration}
+                    onChange={(event) =>
+                      handleUpdateStoryboardRow(row.id, "narration", event.target.value)
+                    }
+                  />
+                </label>
+                <label className="space-y-2 lg:col-start-2">
+                  <span className="text-sm font-medium">字幕</span>
+                  <input
+                    className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    value={row.subtitle}
+                    onChange={(event) =>
+                      handleUpdateStoryboardRow(row.id, "subtitle", event.target.value)
+                    }
+                  />
+                </label>
+                <label className="space-y-2">
+                  <span className="text-sm font-medium">B-roll</span>
+                  <input
+                    className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    value={row.broll}
+                    onChange={(event) =>
+                      handleUpdateStoryboardRow(row.id, "broll", event.target.value)
+                    }
+                  />
+                </label>
+                <div className="flex items-end lg:col-start-3">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleDeleteStoryboardRow(row.id)}
+                  >
+                    刪除
+                  </Button>
+                </div>
+              </div>
+            ))}
+            {storyboardCopyMessage ? (
+              <p className="rounded-md border bg-background px-3 py-2 text-sm text-muted-foreground">
+                {storyboardCopyMessage}
+              </p>
+            ) : null}
           </CardContent>
         </Card>
 
