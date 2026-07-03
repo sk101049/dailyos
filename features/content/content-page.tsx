@@ -29,6 +29,15 @@ type ScriptApiResponse = {
   error?: string;
 };
 
+const gptOutputHeadings: { key: ScriptPreviewKey; labels: string[] }[] = [
+  { key: "title", labels: ["標題"] },
+  { key: "hook", labels: ["開場吸引句"] },
+  { key: "script", labels: ["腳本"] },
+  { key: "cta", labels: ["行動呼籲"] },
+  { key: "hashtags", labels: ["標籤"] },
+  { key: "coverText", labels: ["封面文字"] }
+];
+
 const topics = [
   {
     title: "退休規劃",
@@ -198,6 +207,42 @@ function buildGptPrompt(formValues: ScriptGenerationForm) {
   ].join("\n");
 }
 
+function parseGptOutput(text: string) {
+  const parsed: Partial<GeneratedScript> = {};
+  let currentKey: ScriptPreviewKey | null = null;
+
+  for (const rawLine of text.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line) {
+      continue;
+    }
+
+    const heading = gptOutputHeadings.find(({ labels }) =>
+      labels.some((label) =>
+        new RegExp(`^(?:\\d+[\\.、]\\s*)?${label}\\s*[:：]?`).test(line)
+      )
+    );
+
+    if (heading) {
+      currentKey = heading.key;
+      const value = line
+        .replace(new RegExp(`^(?:\\d+[\\.、]\\s*)?${heading.labels[0]}\\s*[:：]?`), "")
+        .trim();
+
+      if (value) {
+        parsed[currentKey] = value;
+      }
+      continue;
+    }
+
+    if (currentKey) {
+      parsed[currentKey] = [parsed[currentKey], line].filter(Boolean).join("\n");
+    }
+  }
+
+  return parsed;
+}
+
 export function ContentPage() {
   const [formValues, setFormValues] =
     useState<ScriptGenerationForm>(initialFormValues);
@@ -206,6 +251,8 @@ export function ContentPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [copyMessage, setCopyMessage] = useState<string | null>(null);
+  const [gptOutput, setGptOutput] = useState("");
+  const [gptImportMessage, setGptImportMessage] = useState<string | null>(null);
   const gptPrompt = buildGptPrompt(formValues);
 
   async function handleGenerateScript() {
@@ -252,6 +299,21 @@ export function ContentPage() {
     }
   }
 
+  function handleApplyGptOutput() {
+    const parsed = parseGptOutput(gptOutput);
+
+    if (Object.keys(parsed).length === 0) {
+      setGptImportMessage("找不到可辨識的段落，請確認內容包含標題、開場吸引句、腳本、行動呼籲、標籤或封面文字。");
+      return;
+    }
+
+    setGeneratedScript((current) => ({
+      ...current,
+      ...parsed
+    }));
+    setGptImportMessage("已套用可辨識的 GPT 結果到預覽卡片。");
+  }
+
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
       <section className="space-y-6">
@@ -290,6 +352,38 @@ export function ContentPage() {
                 </Card>
               ))}
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="space-y-1">
+                <CardTitle>貼上 GPT 結果</CardTitle>
+                <CardDescription>
+                  將 ChatGPT 產生的內容貼回 DailyOS，並套用到現有預覽卡片。
+                </CardDescription>
+              </div>
+              <Button variant="outline" onClick={handleApplyGptOutput}>
+                套用到預覽卡片
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <textarea
+              className="min-h-56 w-full resize-y rounded-md border bg-background px-3 py-2 text-sm leading-6 outline-none transition-colors placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
+              placeholder={"標題：...\n開場吸引句：...\n腳本：...\n行動呼籲：...\n標籤：...\n封面文字：..."}
+              value={gptOutput}
+              onChange={(event) => {
+                setGptImportMessage(null);
+                setGptOutput(event.target.value);
+              }}
+            />
+            {gptImportMessage ? (
+              <p className="rounded-md border bg-background px-3 py-2 text-sm text-muted-foreground">
+                {gptImportMessage}
+              </p>
+            ) : null}
           </CardContent>
         </Card>
 
