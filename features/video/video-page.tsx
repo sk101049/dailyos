@@ -123,34 +123,6 @@ function downloadText(fileName: string, content: string, type: string) {
   URL.revokeObjectURL(url);
 }
 
-function packageMarkdown(item: ProductionPackage) {
-  return [
-    `# ${item.title}`,
-    "",
-    `Created: ${item.createdAt}`,
-    `Format: ${item.config.format}`,
-    `Render target: ${item.config.renderTarget}`,
-    `Status: ${item.config.status}`,
-    "",
-    "## Assets",
-    `Script: ${item.script?.title ?? "None"}`,
-    `Character: ${item.character?.name ?? "None"}`,
-    `Voice: ${item.voice?.name ?? "None"}`,
-    "",
-    "## Scenes",
-    ...item.storyboard.map((scene) =>
-      [
-        `### Scene ${scene.shot}`,
-        `Visual: ${scene.visual}`,
-        `Voiceover: ${scene.narration}`,
-        `Subtitle: ${scene.subtitle}`,
-        `Image prompt: ${scene.imagePrompt ?? ""}`,
-        `Video prompt: ${scene.videoPrompt ?? ""}`
-      ].join("\n")
-    )
-  ].join("\n");
-}
-
 function geminiPromptPackage(item: ProductionPackage, settings: GeminiSettings) {
   return [
     "# Gemini / Veo Video Prompt Package",
@@ -209,6 +181,77 @@ function geminiPromptPackage(item: ProductionPackage, settings: GeminiSettings) 
     "",
     "## Manual Result Tracking",
     settings.outputNotes || "Paste Gemini / AI Studio output URL or local file path here."
+  ].join("\n");
+}
+
+function projectManifest(item: ProductionPackage) {
+  return {
+    name: item.title,
+    createdAt: item.createdAt,
+    provider: item.provider,
+    format: item.config.format,
+    renderTarget: item.config.renderTarget,
+    status: item.config.status,
+    assets: {
+      scriptId: item.script?.id ?? null,
+      characterId: item.character?.id ?? null,
+      voiceId: item.voice?.id ?? null,
+      storyboardSceneIds: item.storyboard.map((scene) => scene.id)
+    },
+    sceneCount: item.storyboard.length,
+    integrations: item.config.integrations
+  };
+}
+
+function openMontageProps(item: ProductionPackage) {
+  return {
+    title: item.title,
+    provider: item.provider,
+    format: item.config.format,
+    script: item.script,
+    character: item.character,
+    voice: item.voice,
+    scenes: item.storyboard.map((scene, index) => ({
+      id: scene.id,
+      order: index + 1,
+      shot: scene.shot,
+      visual: scene.visual,
+      voiceover: scene.narration,
+      subtitle: scene.subtitle,
+      imagePrompt: scene.imagePrompt ?? "",
+      videoPrompt: scene.videoPrompt ?? ""
+    }))
+  };
+}
+
+function renderCommandMarkdown(item: ProductionPackage) {
+  const providerInstructions =
+    item.provider === "OpenMontage"
+      ? [
+          "## OpenMontage",
+          "Review `openmontage-props.json`, adapt it to the local OpenMontage project, then render manually.",
+          "",
+          "```powershell",
+          "python vendor\\OpenMontage\\render_demo.py <project-name>",
+          "```"
+        ]
+      : [
+          "## Gemini",
+          "1. Export `gemini-prompt-package.md`.",
+          "2. Open Gemini or Google AI Studio.",
+          "3. Paste the prompts scene by scene.",
+          "4. Save the generated output URL or local path back in Video Studio."
+        ];
+
+  return [
+    "# Render Command",
+    "",
+    `Provider: ${item.provider}`,
+    `Render target: ${item.config.renderTarget}`,
+    "",
+    "Manual workflow only. DailyOS does not call APIs, start workers, or render automatically.",
+    "",
+    ...providerInstructions
   ].join("\n");
 }
 
@@ -394,25 +437,65 @@ export function VideoPage() {
                 variant="outline"
                 onClick={() =>
                   downloadText(
-                    "dailyos-video-package.json",
+                    "production-package.json",
                     JSON.stringify(productionPackage, null, 2),
                     "application/json"
                   )
                 }
               >
-                匯出 metadata JSON
+                匯出 production-package.json
               </Button>
               <Button
                 variant="outline"
                 onClick={() =>
                   downloadText(
-                    "dailyos-video-package.md",
-                    packageMarkdown(productionPackage),
+                    "project-manifest.json",
+                    JSON.stringify(projectManifest(productionPackage), null, 2),
+                    "application/json"
+                  )
+                }
+              >
+                匯出 project-manifest.json
+              </Button>
+              {provider === "OpenMontage" ? (
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    downloadText(
+                      "openmontage-props.json",
+                      JSON.stringify(openMontageProps(productionPackage), null, 2),
+                      "application/json"
+                    )
+                  }
+                >
+                  匯出 openmontage-props.json
+                </Button>
+              ) : null}
+              {provider === "Gemini" ? (
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    downloadText(
+                      "gemini-prompt-package.md",
+                      geminiPackage,
+                      "text/markdown"
+                    )
+                  }
+                >
+                  匯出 gemini-prompt-package.md
+                </Button>
+              ) : null}
+              <Button
+                variant="outline"
+                onClick={() =>
+                  downloadText(
+                    "render-command.md",
+                    renderCommandMarkdown(productionPackage),
                     "text/markdown"
                   )
                 }
               >
-                匯出 config Markdown
+                匯出 render-command.md
               </Button>
             </div>
           </CardContent>
@@ -501,13 +584,13 @@ export function VideoPage() {
                 variant="outline"
                 onClick={() =>
                   downloadText(
-                    "dailyos-gemini-prompts.md",
+                    "gemini-prompt-package.md",
                     geminiPackage,
                     "text/markdown"
                   )
                 }
               >
-                匯出 Gemini prompts
+                匯出 gemini-prompt-package.md
               </Button>
             </div>
             <pre className="max-h-[520px] overflow-auto whitespace-pre-wrap break-words rounded-md bg-secondary/40 p-3 text-sm leading-6 text-muted-foreground">
