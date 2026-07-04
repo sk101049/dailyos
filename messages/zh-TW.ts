@@ -7,7 +7,8 @@ export const messages = {
   navigation: {
     dashboard: "工作儀表板",
     content: "內容工作室",
-    crm: "客戶管理"
+    crm: "客戶管理",
+    publishing: "發布中心"
   },
   common: {
     aiAssistant: "AI 助理",

@@ -9,7 +9,8 @@ import { messages } from "@/messages/zh-TW";
 const navItems = [
   { href: "/dashboard", label: messages.navigation.dashboard, marker: "D" },
   { href: "/content", label: messages.navigation.content, marker: "C" },
-  { href: "/crm", label: messages.navigation.crm, marker: "R" }
+  { href: "/crm", label: messages.navigation.crm, marker: "R" },
+  { href: "/publishing", label: messages.navigation.publishing, marker: "P" }
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
