@@ -10,7 +10,8 @@ const navItems = [
   { href: "/dashboard", label: messages.navigation.dashboard, marker: "D" },
   { href: "/content", label: messages.navigation.content, marker: "C" },
   { href: "/crm", label: messages.navigation.crm, marker: "R" },
-  { href: "/publishing", label: messages.navigation.publishing, marker: "P" }
+  { href: "/publishing", label: messages.navigation.publishing, marker: "P" },
+  { href: "/calendar", label: messages.navigation.calendar, marker: "L" }
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
