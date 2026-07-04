@@ -53,6 +53,7 @@ type ProductionPackage = {
   id: string;
   title: string;
   createdAt: string;
+  provider: string;
   script: ScriptAsset | null;
   character: CharacterAsset | null;
   voice: VoiceAsset | null;
@@ -63,6 +64,17 @@ type ProductionPackage = {
     status: string;
     integrations: string[];
   };
+  gemini?: GeminiSettings;
+};
+
+type GeminiSettings = {
+  aspectRatio: string;
+  targetDuration: string;
+  visualStyle: string;
+  characterReferenceNotes: string;
+  voiceAudioDirection: string;
+  subtitleDirection: string;
+  outputNotes: string;
 };
 
 const SCRIPT_KEY = "dailyos-script-library";
@@ -70,6 +82,8 @@ const CHARACTER_KEY = "dailyos-character-library";
 const VOICE_KEY = "dailyos-voice-library";
 const STORYBOARD_KEY = "dailyos-storyboard-v2";
 const PACKAGE_KEY = "dailyos-video-packages";
+const GEMINI_URL = "https://gemini.google.com";
+const AI_STUDIO_URL = "https://aistudio.google.com";
 
 function readArray<T>(key: string): T[] {
   try {
@@ -123,6 +137,67 @@ function packageMarkdown(item: ProductionPackage) {
   ].join("\n");
 }
 
+function geminiPromptPackage(item: ProductionPackage, settings: GeminiSettings) {
+  return [
+    "# Gemini / Veo Video Prompt Package",
+    "",
+    `Provider: ${item.provider}`,
+    `Aspect ratio: ${settings.aspectRatio}`,
+    `Target duration: ${settings.targetDuration}`,
+    `Visual style: ${settings.visualStyle}`,
+    "",
+    "## Project",
+    `Script: ${item.script?.title ?? "未選擇"}`,
+    `Character: ${item.character?.name ?? "未選擇"}`,
+    `Voice: ${item.voice?.name ?? "未選擇"}`,
+    "",
+    "## Character Reference Notes",
+    settings.characterReferenceNotes ||
+      [
+        item.character?.name,
+        item.character?.hairstyle,
+        item.character?.hairColor,
+        item.character?.outfit,
+        item.character?.brandAttributes
+      ].filter(Boolean).join("; ") ||
+      "Keep character identity consistent across all scenes.",
+    "",
+    "## Voice / Audio Direction",
+    settings.voiceAudioDirection ||
+      [
+        item.voice?.name,
+        item.voice?.speakingStyle,
+        item.voice?.tone,
+        item.voice?.speed,
+        item.voice?.pauseLevel,
+        item.voice?.emotionalWarmth
+      ].filter(Boolean).join("; ") ||
+      "Natural Traditional Chinese narration, warm and clear.",
+    "",
+    "## Subtitle Direction",
+    settings.subtitleDirection,
+    "",
+    "## Full Prompt",
+    "Generate a vertical Traditional Chinese insurance education short video.",
+    "Maintain the same presenter identity, outfit, hair, tone, and visual style in every scene.",
+    "Use clear camera movement, natural gestures, readable subtitles, and warm professional pacing.",
+    "",
+    ...item.storyboard.map((scene) =>
+      [
+        `### Scene ${scene.shot}`,
+        `Visual: ${scene.visual}`,
+        `Voiceover: ${scene.narration}`,
+        `Subtitle: ${scene.subtitle}`,
+        `Image prompt: ${scene.imagePrompt ?? ""}`,
+        `Video prompt: ${scene.videoPrompt ?? ""}`
+      ].join("\n")
+    ),
+    "",
+    "## Manual Result Tracking",
+    settings.outputNotes || "Paste Gemini / AI Studio output URL or local file path here."
+  ].join("\n");
+}
+
 export function VideoPage() {
   const [scripts, setScripts] = useState<ScriptAsset[]>([]);
   const [characters, setCharacters] = useState<CharacterAsset[]>([]);
@@ -131,6 +206,16 @@ export function VideoPage() {
   const [scriptId, setScriptId] = useState("");
   const [characterId, setCharacterId] = useState("");
   const [voiceId, setVoiceId] = useState("");
+  const [provider, setProvider] = useState("Gemini");
+  const [geminiSettings, setGeminiSettings] = useState<GeminiSettings>({
+    aspectRatio: "9:16",
+    targetDuration: "30 seconds",
+    visualStyle: "Warm, bright, trustworthy insurance education short",
+    characterReferenceNotes: "",
+    voiceAudioDirection: "",
+    subtitleDirection: "Traditional Chinese subtitles, large readable text, high contrast",
+    outputNotes: ""
+  });
   const [message, setMessage] = useState<string | null>(null);
   const [packages, setPackages] = useState<ProductionPackage[]>([]);
 
@@ -159,6 +244,7 @@ export function VideoPage() {
       id: crypto.randomUUID(),
       title: "DailyOS Video Production Package",
       createdAt: new Date().toISOString(),
+      provider,
       script: findById(scripts, scriptId),
       character,
       voice,
@@ -168,19 +254,43 @@ export function VideoPage() {
         voiceProfileId: scene.voiceProfileId || voice?.id
       })),
       config: {
-        format: "Vertical short video, 9:16",
-        renderTarget: "Manual OpenMontage handoff",
+        format: `Vertical short video, ${geminiSettings.aspectRatio}`,
+        renderTarget: provider === "Gemini" ? "Manual Gemini / Google AI Studio handoff" : "Manual OpenMontage handoff",
         status: "Ready for review",
-        integrations: ["OpenMontage-ready metadata", "No automatic rendering"]
-      }
+        integrations: [
+          `${provider}-ready metadata`,
+          "No API keys",
+          "No automatic rendering"
+        ]
+      },
+      gemini: provider === "Gemini" ? geminiSettings : undefined
     };
-  }, [characterId, characters, scriptId, scripts, storyboard, voiceId, voices]);
+  }, [characterId, characters, geminiSettings, provider, scriptId, scripts, storyboard, voiceId, voices]);
+
+  const geminiPackage = useMemo(
+    () => geminiPromptPackage(productionPackage, geminiSettings),
+    [geminiSettings, productionPackage]
+  );
 
   function savePackage() {
     const next = [productionPackage, ...packages];
     setPackages(next);
     window.localStorage.setItem(PACKAGE_KEY, JSON.stringify(next));
     setMessage("Production package assembled and saved locally.");
+  }
+
+  async function copyGeminiPrompt() {
+    if (!navigator.clipboard?.writeText) {
+      setMessage("剪貼簿不可用，請直接複製下方 Gemini prompt。");
+      return;
+    }
+
+    await navigator.clipboard.writeText(geminiPackage);
+    setMessage("Gemini prompt package 已複製。");
+  }
+
+  function updateGeminiSettings(key: keyof GeminiSettings, value: string) {
+    setGeminiSettings((current) => ({ ...current, [key]: value }));
   }
 
   return (
@@ -190,23 +300,22 @@ export function VideoPage() {
           <div>
             <p className="text-sm font-medium text-primary">Video Studio</p>
             <h2 className="mt-2 text-3xl font-semibold tracking-normal">
-              Production Package
+              影片製作包
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-              Assemble script, character, voice, and storyboard assets into an exportable
-              production package. Rendering stays manual for this MVP.
+              將腳本、人物、聲音與分鏡組成可匯出的製作包。這版只做手動 Gemini / Google AI Studio 工作流，不呼叫 API。
             </p>
           </div>
           <Badge variant="secondary" className="w-fit">
-            localStorage MVP
+            本機儲存 MVP
           </Badge>
         </div>
 
         <Card>
           <CardHeader>
-            <CardTitle>Asset Selection</CardTitle>
+            <CardTitle>素材選擇</CardTitle>
             <CardDescription>
-              Reuses saved Script Library, Character Studio, Voice Studio, and Storyboard Studio data.
+              重用 Script Library、Character Studio、Voice Studio 與 Storyboard Studio 的本機資料。
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -217,41 +326,41 @@ export function VideoPage() {
             ) : null}
             <div className="grid gap-4 md:grid-cols-2">
               <SelectField
-                label="Script"
+                label="腳本"
                 value={scriptId}
-                placeholder="No saved scripts"
+                placeholder="尚無已儲存腳本"
                 options={scripts.map((item) => ({ label: item.title, value: item.id }))}
                 onChange={setScriptId}
               />
               <SelectField
-                label="Character"
+                label="人物"
                 value={characterId}
-                placeholder="No character profiles"
+                placeholder="尚無人物設定"
                 options={characters.map((item) => ({ label: item.name, value: item.id }))}
                 onChange={setCharacterId}
               />
               <SelectField
-                label="Voice"
+                label="聲音"
                 value={voiceId}
-                placeholder="No voice profiles"
+                placeholder="尚無聲音設定"
                 options={voices.map((item) => ({ label: item.name, value: item.id }))}
                 onChange={setVoiceId}
               />
               <label className="space-y-2">
-                <span className="text-sm font-medium">Storyboard</span>
+                <span className="text-sm font-medium">分鏡</span>
                 <select
                   className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   value={storyboard.length ? "current" : ""}
                   disabled
                 >
                   <option value={storyboard.length ? "current" : ""}>
-                    {storyboard.length ? `Current Storyboard (${storyboard.length} scenes)` : "No storyboard scenes"}
+                    {storyboard.length ? `目前分鏡（${storyboard.length} 場）` : "尚無分鏡場次"}
                   </option>
                 </select>
               </label>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button onClick={savePackage}>Generate Production Package</Button>
+              <Button onClick={savePackage}>產生製作包</Button>
               <Button
                 variant="outline"
                 onClick={() =>
@@ -262,7 +371,7 @@ export function VideoPage() {
                   )
                 }
               >
-                Export Metadata JSON
+                匯出 metadata JSON
               </Button>
               <Button
                 variant="outline"
@@ -274,7 +383,7 @@ export function VideoPage() {
                   )
                 }
               >
-                Export Config Markdown
+                匯出 config Markdown
               </Button>
             </div>
           </CardContent>
@@ -282,9 +391,107 @@ export function VideoPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Project Configuration Preview</CardTitle>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <CardTitle>Gemini / Google AI Studio 工作流</CardTitle>
+                <CardDescription>
+                  選擇 Gemini provider，產生可貼到 Gemini 或 AI Studio 的 Veo-style prompt。
+                </CardDescription>
+              </div>
+              <Badge variant="outline">手動工作流</Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <SelectField
+                label="影片 provider"
+                value={provider}
+                placeholder="選擇 provider"
+                options={[
+                  { label: "Gemini", value: "Gemini" },
+                  { label: "OpenMontage", value: "OpenMontage" }
+                ]}
+                onChange={setProvider}
+              />
+              <SelectField
+                label="畫面比例"
+                value={geminiSettings.aspectRatio}
+                placeholder="選擇比例"
+                options={[
+                  { label: "9:16", value: "9:16" },
+                  { label: "16:9", value: "16:9" },
+                  { label: "1:1", value: "1:1" }
+                ]}
+                onChange={(value) => updateGeminiSettings("aspectRatio", value)}
+              />
+              <TextField
+                label="目標長度"
+                value={geminiSettings.targetDuration}
+                onChange={(value) => updateGeminiSettings("targetDuration", value)}
+              />
+              <TextField
+                label="視覺風格"
+                value={geminiSettings.visualStyle}
+                onChange={(value) => updateGeminiSettings("visualStyle", value)}
+              />
+            </div>
+            <div className="grid gap-4 md:grid-cols-2">
+              <TextArea
+                label="人物參考說明"
+                value={geminiSettings.characterReferenceNotes}
+                placeholder="留白時會使用 Character Studio 資料。"
+                onChange={(value) => updateGeminiSettings("characterReferenceNotes", value)}
+              />
+              <TextArea
+                label="聲音 / 音訊方向"
+                value={geminiSettings.voiceAudioDirection}
+                placeholder="留白時會使用 Voice Studio 資料。"
+                onChange={(value) => updateGeminiSettings("voiceAudioDirection", value)}
+              />
+              <TextArea
+                label="字幕方向"
+                value={geminiSettings.subtitleDirection}
+                onChange={(value) => updateGeminiSettings("subtitleDirection", value)}
+              />
+              <TextArea
+                label="手動結果追蹤"
+                value={geminiSettings.outputNotes}
+                placeholder="貼上 Gemini / AI Studio 輸出 URL 或本機檔案路徑。"
+                onChange={(value) => updateGeminiSettings("outputNotes", value)}
+              />
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={copyGeminiPrompt}>複製 Gemini prompt</Button>
+              <Button variant="outline" onClick={() => window.open(GEMINI_URL, "_blank", "noopener,noreferrer")}>
+                開啟 Gemini
+              </Button>
+              <Button variant="outline" onClick={() => window.open(AI_STUDIO_URL, "_blank", "noopener,noreferrer")}>
+                開啟 Google AI Studio
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() =>
+                  downloadText(
+                    "dailyos-gemini-prompts.md",
+                    geminiPackage,
+                    "text/markdown"
+                  )
+                }
+              >
+                匯出 Gemini prompts
+              </Button>
+            </div>
+            <pre className="max-h-[520px] overflow-auto whitespace-pre-wrap break-words rounded-md bg-secondary/40 p-3 text-sm leading-6 text-muted-foreground">
+              {geminiPackage}
+            </pre>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>專案設定預覽</CardTitle>
             <CardDescription>
-              This is the reusable handoff package for future OpenMontage or provider adapters.
+              可重複使用的 provider handoff package，未包含 API key。
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -298,17 +505,18 @@ export function VideoPage() {
       <aside className="space-y-4">
         <Card className="xl:sticky xl:top-24">
           <CardHeader>
-            <CardTitle>Package Summary</CardTitle>
-            <CardDescription>{packages.length} saved local packages</CardDescription>
+            <CardTitle>製作包摘要</CardTitle>
+            <CardDescription>{packages.length} 個本機製作包</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <SummaryRow label="Script" value={productionPackage.script?.title ?? "Missing"} />
-            <SummaryRow label="Character" value={productionPackage.character?.name ?? "Missing"} />
-            <SummaryRow label="Voice" value={productionPackage.voice?.name ?? "Missing"} />
-            <SummaryRow label="Scenes" value={String(productionPackage.storyboard.length)} />
-            <SummaryRow label="Render" value="Manual only" />
+            <SummaryRow label="Provider" value={provider} />
+            <SummaryRow label="腳本" value={productionPackage.script?.title ?? "未選擇"} />
+            <SummaryRow label="人物" value={productionPackage.character?.name ?? "未選擇"} />
+            <SummaryRow label="聲音" value={productionPackage.voice?.name ?? "未選擇"} />
+            <SummaryRow label="場次" value={String(productionPackage.storyboard.length)} />
+            <SummaryRow label="Render" value="僅手動" />
             <div className="rounded-md border bg-secondary/30 p-3 text-sm text-muted-foreground">
-              No cloud sync, paid providers, or automatic rendering are used in this MVP.
+              這版不使用 API key、不假設付費權限，也不自動 render。
             </div>
           </CardContent>
         </Card>
@@ -345,6 +553,51 @@ function SelectField({
           </option>
         ))}
       </select>
+    </label>
+  );
+}
+
+function TextField({
+  label,
+  value,
+  onChange
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="space-y-2">
+      <span className="text-sm font-medium">{label}</span>
+      <input
+        className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      />
+    </label>
+  );
+}
+
+function TextArea({
+  label,
+  value,
+  placeholder,
+  onChange
+}: {
+  label: string;
+  value: string;
+  placeholder?: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <label className="space-y-2">
+      <span className="text-sm font-medium">{label}</span>
+      <textarea
+        className="min-h-28 w-full resize-y rounded-md border bg-background px-3 py-2 text-sm leading-6 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        value={value}
+        placeholder={placeholder}
+        onChange={(event) => onChange(event.target.value)}
+      />
     </label>
   );
 }
