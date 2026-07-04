@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { AIImageStudio } from "./components/ai-image-studio";
 import { ContentAssistant } from "./components/content-assistant";
+import { DigitalHumanStudio } from "./components/digital-human-studio";
 import { GptMode } from "./components/gpt-mode";
 import { GptOutputImport } from "./components/gpt-output-import";
 import { PageHero } from "./components/page-hero";
@@ -283,6 +284,7 @@ export function ContentPage() {
           onUpdate={handleUpdateStoryboardRow}
         />
         <AIImageStudio script={generatedScript} storyboardRows={storyboardRows} />
+        <DigitalHumanStudio script={generatedScript} />
         <ThumbnailPromptBuilder
           prompt={thumbnailPrompt}
           style={thumbnailStyle}
