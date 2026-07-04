@@ -1,0 +1,125 @@
+{
+  "theme": "clean-professional",
+  "cuts": [
+    {
+      "id": "hook",
+      "source": "",
+      "type": "hero_title",
+      "in_seconds": 0,
+      "out_seconds": 5,
+      "text": "有醫療險就夠了嗎？",
+      "subtitle": "30 秒看懂保障缺口",
+      "backgroundColor": "#F8FAFC"
+    },
+    {
+      "id": "medical-costs",
+      "source": "",
+      "type": "kpi_grid",
+      "in_seconds": 5,
+      "out_seconds": 10,
+      "title": "醫療險主要接住",
+      "chartData": [
+        { "label": "住院", "value": 1, "change": 0, "suffix": "" },
+        { "label": "手術", "value": 1, "change": 0, "suffix": "" },
+        { "label": "醫療支出", "value": 1, "change": 0, "suffix": "" }
+      ],
+      "columns": 3,
+      "chartColors": ["#2563EB", "#10B981", "#F59E0B"],
+      "backgroundColor": "#FFFFFF",
+      "color": "#1F2937"
+    },
+    {
+      "id": "income-gap",
+      "source": "",
+      "type": "callout",
+      "in_seconds": 10,
+      "out_seconds": 16,
+      "title": "真正的壓力",
+      "text": "療養期間不能工作，收入中斷可能比醫療費更難撐。",
+      "callout_type": "warning",
+      "accentColor": "#F59E0B",
+      "backgroundColor": "#FEF3C7",
+      "color": "#1F2937"
+    },
+    {
+      "id": "living-costs",
+      "source": "",
+      "type": "comparison",
+      "in_seconds": 16,
+      "out_seconds": 22,
+      "title": "缺口不只醫療費",
+      "leftLabel": "醫療險",
+      "leftValue": "醫療支出",
+      "rightLabel": "生活責任",
+      "rightValue": "看護、房貸、家庭開銷",
+      "accentColor": "#2563EB",
+      "backgroundColor": "#EFF6FF",
+      "color": "#1F2937"
+    },
+    {
+      "id": "three-checks",
+      "source": "",
+      "type": "kpi_grid",
+      "in_seconds": 22,
+      "out_seconds": 27,
+      "title": "保單健檢三件事",
+      "chartData": [
+        { "label": "醫療費", "value": 1, "change": 0, "suffix": "" },
+        { "label": "收入替代", "value": 2, "change": 0, "suffix": "" },
+        { "label": "家庭責任", "value": 3, "change": 0, "suffix": "" }
+      ],
+      "columns": 3,
+      "chartColors": ["#2563EB", "#10B981", "#EC4899"],
+      "backgroundColor": "#FFFFFF",
+      "color": "#1F2937"
+    },
+    {
+      "id": "close",
+      "source": "",
+      "type": "hero_title",
+      "in_seconds": 27,
+      "out_seconds": 29,
+      "text": "先做保單健檢",
+      "subtitle": "讓保障跟生活對齊",
+      "backgroundColor": "#F8FAFC"
+    }
+  ],
+  "overlays": [
+    {
+      "type": "stat_reveal",
+      "in_seconds": 10.5,
+      "out_seconds": 14.5,
+      "text": "收入中斷",
+      "subtitle": "常被低估的風險",
+      "accentColor": "#F59E0B",
+      "position": "bottom-right"
+    },
+    {
+      "type": "section_title",
+      "in_seconds": 22.2,
+      "out_seconds": 25.2,
+      "text": "三個缺口",
+      "subtitle": "醫療費 / 收入替代 / 家庭責任",
+      "accentColor": "#2563EB",
+      "position": "top-left"
+    }
+  ],
+  "captions": [
+    { "word": "有醫療險，", "startMs": 0, "endMs": 2500 },
+    { "word": "就真的夠了嗎？", "startMs": 2500, "endMs": 5000 },
+    { "word": "醫療險主要處理", "startMs": 5000, "endMs": 7000 },
+    { "word": "住院、手術，", "startMs": 7000, "endMs": 8500 },
+    { "word": "和部分醫療支出。", "startMs": 8500, "endMs": 10000 },
+    { "word": "但療養期間", "startMs": 10000, "endMs": 12000 },
+    { "word": "不能工作，", "startMs": 12000, "endMs": 13500 },
+    { "word": "收入中斷才可能是壓力。", "startMs": 13500, "endMs": 16000 },
+    { "word": "還有看護費、", "startMs": 16000, "endMs": 18000 },
+    { "word": "房貸、家庭開銷，", "startMs": 18000, "endMs": 20000 },
+    { "word": "不一定都在醫療險裡。", "startMs": 20000, "endMs": 22000 },
+    { "word": "保障不是看有沒有，", "startMs": 22000, "endMs": 24500 },
+    { "word": "而是看缺口有沒有被補上。", "startMs": 24500, "endMs": 27000 },
+    { "word": "先從保單健檢開始，", "startMs": 27000, "endMs": 28500 },
+    { "word": "讓保障跟生活對齊。", "startMs": 28500, "endMs": 30000 }
+  ],
+  "audio": {}
+}
