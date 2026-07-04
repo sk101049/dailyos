@@ -108,6 +108,29 @@ export function ContentPage() {
     }
   }
 
+  async function handleOpenChatGpt() {
+    if (!navigator.clipboard?.writeText) {
+      setCopyMessage("目前瀏覽器不支援自動複製，請手動選取 GPT Prompt 後貼到 ChatGPT。");
+      return;
+    }
+
+    const chatGptWindow = window.open("https://chatgpt.com", "_blank");
+    if (chatGptWindow) {
+      chatGptWindow.opener = null;
+    }
+
+    try {
+      await navigator.clipboard.writeText(gptPrompt);
+      setCopyMessage(
+        chatGptWindow
+          ? "已複製 GPT Prompt，請在新開啟的 ChatGPT 分頁貼上使用。"
+          : "已複製 GPT Prompt，但瀏覽器封鎖了新分頁，請手動開啟 ChatGPT 後貼上。"
+      );
+    } catch {
+      setCopyMessage("無法自動複製，請手動選取 GPT Prompt 後貼到 ChatGPT。");
+    }
+  }
+
   async function handleCopyThumbnailPrompt() {
     if (!navigator.clipboard?.writeText) {
       setThumbnailCopyMessage("目前瀏覽器不支援自動複製，請手動選取並複製縮圖 Prompt。");
@@ -309,6 +332,7 @@ export function ContentPage() {
           prompt={gptPrompt}
           message={copyMessage}
           onCopy={handleCopyGptPrompt}
+          onOpenChatGpt={handleOpenChatGpt}
         />
         <PromptBuilder />
         <ScriptWorkspace />

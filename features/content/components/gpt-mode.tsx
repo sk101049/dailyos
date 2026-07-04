@@ -13,9 +13,15 @@ type GptModeProps = {
   prompt: string;
   message: string | null;
   onCopy: () => void;
+  onOpenChatGpt: () => void;
 };
 
-export function GptMode({ prompt, message, onCopy }: GptModeProps) {
+export function GptMode({
+  prompt,
+  message,
+  onCopy,
+  onOpenChatGpt
+}: GptModeProps) {
   return (
     <Card>
       <CardHeader>
@@ -26,9 +32,12 @@ export function GptMode({ prompt, message, onCopy }: GptModeProps) {
               根據目前腳本產生器欄位，建立可貼到 ChatGPT 的繁體中文 Prompt。
             </CardDescription>
           </div>
-          <Button variant="outline" onClick={onCopy}>
-            複製 GPT Prompt
-          </Button>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button variant="outline" onClick={onCopy}>
+              複製 GPT Prompt
+            </Button>
+            <Button onClick={onOpenChatGpt}>開啟 ChatGPT</Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
