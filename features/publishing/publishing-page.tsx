@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import {
   Card,
@@ -20,7 +20,10 @@ type PublishingItem = {
   status: PublishingStatus;
   scheduledDate: string;
   note: string;
+  sourceCalendarTaskId?: string;
 };
+
+const STORAGE_KEY = "dailyos-publishing-center";
 
 const publishingStatuses: PublishingStatus[] = [
   "待製作",
@@ -66,6 +69,34 @@ const initialItems: PublishingItem[] = [
 
 export function PublishingPage() {
   const [items, setItems] = useState<PublishingItem[]>(initialItems);
+  const [hasLoadedItems, setHasLoadedItems] = useState(false);
+
+  useEffect(() => {
+    const saved = window.localStorage.getItem(STORAGE_KEY);
+    if (!saved) {
+      setHasLoadedItems(true);
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(saved) as PublishingItem[];
+      if (Array.isArray(parsed)) {
+        setItems(parsed);
+      }
+    } catch {
+      window.localStorage.removeItem(STORAGE_KEY);
+    } finally {
+      setHasLoadedItems(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!hasLoadedItems) {
+      return;
+    }
+
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  }, [hasLoadedItems, items]);
 
   function updateStatus(id: string, status: PublishingStatus) {
     setItems((current) =>

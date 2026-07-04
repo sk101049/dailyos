@@ -22,9 +22,20 @@ type ContentTask = {
   publishDate: string;
 };
 
+type PublishingItem = {
+  id: string;
+  title: string;
+  platform: string;
+  status: ContentTaskStatus;
+  scheduledDate: string;
+  note: string;
+  sourceCalendarTaskId?: string;
+};
+
 type TaskForm = Omit<ContentTask, "id">;
 
 const STORAGE_KEY = "dailyos-content-calendar";
+const PUBLISHING_STORAGE_KEY = "dailyos-publishing-center";
 const statuses: ContentTaskStatus[] = ["待製作", "待剪輯", "待發布", "已發布"];
 const platforms = ["YouTube Shorts", "TikTok", "Instagram Reels", "Facebook Reels"];
 const weekdays = ["日", "一", "二", "三", "四", "五", "六"];
@@ -93,6 +104,7 @@ export function CalendarPage() {
   const [hasLoadedTasks, setHasLoadedTasks] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<TaskForm>(() => emptyForm(today));
+  const [publishingMessage, setPublishingMessage] = useState<string | null>(null);
 
   const monthDays = useMemo(() => buildMonthDays(currentMonth), [currentMonth]);
   const selectedTasks = tasks.filter((task) => task.publishDate === selectedDate);
@@ -176,6 +188,40 @@ export function CalendarPage() {
       setEditingId(null);
       setForm(emptyForm(selectedDate));
     }
+  }
+
+  function sendToPublishing(task: ContentTask) {
+    let items: PublishingItem[] = [];
+
+    try {
+      const saved = window.localStorage.getItem(PUBLISHING_STORAGE_KEY);
+      const parsed = saved ? (JSON.parse(saved) as PublishingItem[]) : [];
+      items = Array.isArray(parsed) ? parsed : [];
+    } catch {
+      items = [];
+    }
+
+    if (items.some((item) => item.sourceCalendarTaskId === task.id)) {
+      setPublishingMessage(`「${task.title}」已在發布中心。`);
+      return;
+    }
+
+    window.localStorage.setItem(
+      PUBLISHING_STORAGE_KEY,
+      JSON.stringify([
+        ...items,
+        {
+          id: crypto.randomUUID(),
+          title: task.title,
+          platform: task.platform,
+          status: task.status,
+          scheduledDate: task.publishDate,
+          note: `來自內容行事曆：${task.publishDate}`,
+          sourceCalendarTaskId: task.id
+        }
+      ])
+    );
+    setPublishingMessage(`已將「${task.title}」送至發布中心。`);
   }
 
   return (
@@ -269,6 +315,11 @@ export function CalendarPage() {
             <CardDescription>當日內容排程</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
+            {publishingMessage ? (
+              <p className="rounded-md border bg-background px-3 py-2 text-sm text-muted-foreground">
+                {publishingMessage}
+              </p>
+            ) : null}
             <div className="space-y-3">
               {selectedTasks.length === 0 ? (
                 <p className="rounded-md border border-dashed bg-muted/40 p-3 text-sm text-muted-foreground">
@@ -289,6 +340,9 @@ export function CalendarPage() {
                     <div className="mt-3 flex gap-2">
                       <Button variant="secondary" size="sm" onClick={() => editTask(task)}>
                         編輯
+                      </Button>
+                      <Button variant="secondary" size="sm" onClick={() => sendToPublishing(task)}>
+                        送至發布中心
                       </Button>
                       <Button variant="outline" size="sm" onClick={() => deleteTask(task.id)}>
                         刪除
