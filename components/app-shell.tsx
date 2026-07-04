@@ -11,6 +11,7 @@ const navItems = [
   { href: "/content", label: messages.navigation.content, marker: "C" },
   { href: "/character", label: "Character Studio", marker: "H" },
   { href: "/voice", label: "Voice Studio", marker: "V" },
+  { href: "/video", label: "Video Studio", marker: "M" },
   { href: "/crm", label: messages.navigation.crm, marker: "R" },
   { href: "/publishing", label: messages.navigation.publishing, marker: "P" },
   { href: "/calendar", label: messages.navigation.calendar, marker: "L" }
