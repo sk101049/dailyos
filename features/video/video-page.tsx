@@ -333,6 +333,12 @@ export function VideoPage() {
     () => geminiPromptPackage(productionPackage, geminiSettings),
     [geminiSettings, productionPackage]
   );
+  const nextSteps = [
+    productionPackage.script ? null : "到 Script Studio 儲存一支腳本。",
+    productionPackage.character ? null : "到 Character Studio 建立一個人物模板。",
+    productionPackage.voice ? null : "到 Voice Studio 建立一個聲音模板。",
+    productionPackage.storyboard.length ? null : "到 Storyboard Studio 建立分鏡場次。"
+  ].filter((step): step is string => Boolean(step));
 
   function savePackage() {
     const next = [productionPackage, ...packages];
@@ -395,6 +401,16 @@ export function VideoPage() {
               <p className="rounded-md border bg-background px-3 py-2 text-sm text-muted-foreground">
                 {message}
               </p>
+            ) : null}
+            {nextSteps.length > 0 ? (
+              <div className="rounded-md border bg-secondary/30 p-3 text-sm text-muted-foreground">
+                <p className="font-medium text-foreground">下一步</p>
+                <ul className="mt-2 list-disc space-y-1 pl-5">
+                  {nextSteps.map((step) => (
+                    <li key={step}>{step}</li>
+                  ))}
+                </ul>
+              </div>
             ) : null}
             <div className="grid gap-4 md:grid-cols-2">
               <SelectField
