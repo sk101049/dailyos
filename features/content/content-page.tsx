@@ -1,345 +1,37 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { ContentAssistant } from "./components/content-assistant";
+import { GptMode } from "./components/gpt-mode";
+import { GptOutputImport } from "./components/gpt-output-import";
+import { PageHero } from "./components/page-hero";
+import { PromptBuilder } from "./components/prompt-builder";
+import { ScriptGenerator } from "./components/script-generator";
+import { ScriptLibrary } from "./components/script-library";
+import { ScriptWorkspace } from "./components/script-workspace";
+import { StoryboardBuilder } from "./components/storyboard-builder";
+import { ThumbnailPromptBuilder } from "./components/thumbnail-prompt-builder";
+import { TopicSelector } from "./components/topic-selector";
+import { initialFormValues, initialGeneratedScript } from "./constants";
+import { useScriptLibrary } from "./hooks/use-script-library";
+import type {
+  GeneratedScript,
+  SavedScript,
+  ScriptApiResponse,
+  ScriptGenerationForm,
+  ScriptPreviewKey,
+  ScriptStatus,
+  StoryboardRow,
+  ThumbnailRatio,
+  ThumbnailStyle
+} from "./types";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from "@/components/ui/card";
-import { messages } from "@/messages/zh-TW";
-
-type ScriptGenerationForm = {
-  topic: string;
-  targetAudience: string;
-  videoLength: string;
-  tone: string;
-  platform: string;
-};
-
-type ScriptPreviewKey = "title" | "hook" | "script" | "cta" | "hashtags" | "coverText";
-
-type GeneratedScript = Record<ScriptPreviewKey, string>;
-
-type ScriptApiResponse = {
-  script?: GeneratedScript;
-  error?: string;
-};
-
-type ScriptStatus = "草稿" | "已完成" | "已發布";
-
-type ThumbnailStyle = "寫實" | "插畫" | "3D" | "動漫";
-type ThumbnailRatio = "9:16" | "16:9" | "1:1";
-
-type StoryboardRow = {
-  id: string;
-  shot: string;
-  visual: string;
-  narration: string;
-  subtitle: string;
-  broll: string;
-};
-
-type SavedScript = GeneratedScript & {
-  id: string;
-  title: string;
-  topic: string;
-  targetAudience: string;
-  status: ScriptStatus;
-  createdAt: string;
-  updatedAt: string;
-};
-
-const SCRIPT_LIBRARY_STORAGE_KEY = "dailyos-script-library";
-
-const gptOutputHeadings: { key: ScriptPreviewKey; labels: string[] }[] = [
-  { key: "title", labels: ["標題"] },
-  { key: "hook", labels: ["開場吸引句"] },
-  { key: "script", labels: ["腳本"] },
-  { key: "cta", labels: ["行動呼籲"] },
-  { key: "hashtags", labels: ["標籤"] },
-  { key: "coverText", labels: ["封面文字"] }
-];
-
-const topics = [
-  {
-    title: "退休規劃",
-    description: "把退休規劃問題轉成短影音教育內容。"
-  },
-  {
-    title: "醫療保障",
-    description: "用簡單語言說明醫療保障的基本概念。"
-  },
-  {
-    title: "癌症保障",
-    description: "準備更有同理心的癌症保障規劃內容。"
-  },
-  {
-    title: "失能保障",
-    description: "發想收入保護與復原規劃相關內容。"
-  },
-  {
-    title: "長期照護",
-    description: "協助家庭與照顧者理解長照需求。"
-  },
-  {
-    title: "家庭保障",
-    description: "幫助家庭理解風險、責任與下一步。"
-  }
-];
-
-const workspaceSections = [
-  {
-    title: "標題",
-    placeholder: "範例：購買醫療險前要問的 3 個問題"
-  },
-  {
-    title: messages.contentStudio.hook,
-    placeholder: "用常見的客戶擔心或迷思作為開場。"
-  },
-  {
-    title: "腳本",
-    placeholder: "整理 30-60 秒影片的主要教學重點。"
-  },
-  {
-    title: messages.contentStudio.cta,
-    placeholder: "邀請觀眾檢視保單或先準備想問的問題。"
-  },
-  {
-    title: messages.contentStudio.hashtags,
-    placeholder: "#保險 #退休規劃 #家庭保障"
-  },
-  {
-    title: messages.contentStudio.coverText,
-    placeholder: "讓觀眾一眼看懂的短封面文字。"
-  }
-];
-
-const generatorControls = [
-  {
-    key: "topic",
-    label: "保險主題",
-    options: ["退休規劃", "醫療保障", "癌症保障", "失能保障", "長期照護", "家庭保障"]
-  },
-  {
-    key: "targetAudience",
-    label: messages.contentStudio.targetAudience,
-    options: ["年輕家庭", "上班族", "企業主", "退休族"]
-  },
-  {
-    key: "videoLength",
-    label: messages.contentStudio.videoLength,
-    options: ["30 秒", "60 秒", "90 秒"]
-  },
-  {
-    key: "tone",
-    label: messages.contentStudio.tone,
-    options: ["教育型", "溫暖", "專業", "急迫"]
-  },
-  {
-    key: "platform",
-    label: messages.contentStudio.platform,
-    options: ["YouTube Shorts", "TikTok", "Instagram Reels", "Facebook Reels"]
-  }
-] satisfies {
-  key: keyof ScriptGenerationForm;
-  label: string;
-  options: string[];
-}[];
-
-const initialFormValues: ScriptGenerationForm = {
-  topic: "退休規劃",
-  targetAudience: "年輕家庭",
-  videoLength: "60 秒",
-  tone: "教育型",
-  platform: "YouTube Shorts"
-};
-
-const initialGeneratedScript: GeneratedScript = {
-  title: "如果收入中斷，你的家庭還能維持原本生活嗎？",
-  hook: "多數家庭會規劃成長，卻忘了規劃中斷時怎麼辦。",
-  script: "用這段示範腳本說明一個保障缺口、一個生活案例，以及一個簡單下一步。",
-  cta: "在下一個重大家庭決定前，先檢視你目前的保障。",
-  hashtags: "#保險 #家庭保障 #財務規劃",
-  coverText: "守住家人依靠的收入。"
-};
-
-const previewLabels: { key: ScriptPreviewKey; title: string }[] = [
-  { key: "title", title: "標題" },
-  { key: "hook", title: messages.contentStudio.hook },
-  { key: "script", title: "腳本" },
-  { key: "cta", title: messages.contentStudio.cta },
-  { key: "hashtags", title: messages.contentStudio.hashtags },
-  { key: "coverText", title: messages.contentStudio.coverText }
-];
-
-const promptFields = [
-  {
-    label: "目標",
-    value: "建立一支保險教育短影音腳本。"
-  },
-  {
-    label: "受眾",
-    value: "正在比較保障選項的年輕家庭。"
-  },
-  {
-    label: "核心訊息",
-    value: "保險規劃要保護日常生活，而不只是未來目標。",
-    multiline: true
-  },
-  {
-    label: "限制條件",
-    value: "腳本控制在 60 秒內，並避免使用艱深術語。",
-    multiline: true
-  },
-  {
-    label: messages.contentStudio.cta,
-    value: "邀請觀眾檢視目前的保障內容。"
-  }
-];
-
-const promptPreview =
-  "請為正在比較保障選項的年輕家庭，建立一支保險教育短影音腳本。強調保險規劃要保護日常生活，而不只是未來目標。腳本請控制在 60 秒內，避免艱深術語，並以邀請觀眾檢視目前保障作結。";
-
-const assistantSuggestions = [
-  "挑選一個客戶問題，轉成 30 秒回答。",
-  "先選一張主題卡，再填寫開場吸引句與完整腳本。",
-  "讓行動呼籲更有人味：邀請對話，而不是像自動化指令。"
-];
-
-function buildGptPrompt(formValues: ScriptGenerationForm) {
-  return [
-    "請你擔任保險內容策略顧問，協助我產生一支繁體中文短影音腳本。",
-    "",
-    "請根據以下設定撰寫內容：",
-    `- 保險主題：${formValues.topic}`,
-    `- 目標客群：${formValues.targetAudience}`,
-    `- 影片長度：${formValues.videoLength}`,
-    `- 語氣風格：${formValues.tone}`,
-    `- 發布平台：${formValues.platform}`,
-    "",
-    "請回傳以下欄位，並使用清楚的段落標題：",
-    "1. 標題",
-    "2. 開場吸引句",
-    "3. 腳本",
-    "4. 行動呼籲",
-    "5. 標籤",
-    "6. 封面文字",
-    "",
-    "請讓內容適合保險專業人士日常使用，避免誇大承諾，語氣要可信、清楚、有同理心。"
-  ].join("\n");
-}
-
-function buildThumbnailPrompt({
-  script,
-  formValues,
-  style,
-  ratio,
-  includePerson
-}: {
-  script: GeneratedScript;
-  formValues: ScriptGenerationForm;
-  style: ThumbnailStyle;
-  ratio: ThumbnailRatio;
-  includePerson: boolean;
-}) {
-  return [
-    "請產生一張社群短影音縮圖的 AI 圖像 Prompt。",
-    `主題：${formValues.topic}`,
-    `目標客群：${formValues.targetAudience}`,
-    `影片標題：${script.title}`,
-    `開場重點：${script.hook}`,
-    `視覺風格：${style}`,
-    `圖片比例：${ratio}`,
-    includePerson
-      ? "畫面包含一位可信、親切的保險顧問或目標客群人物。"
-      : "畫面不包含人物，聚焦在清楚的視覺隱喻、文字空間與主題物件。",
-    "畫面要乾淨、有高對比、適合 YouTube Shorts 和社群平台縮圖。",
-    "保留明確文字區域，避免雜亂背景，不要加入品牌 logo。"
-  ].join("\n");
-}
-
-function buildInitialStoryboard(script: GeneratedScript): StoryboardRow[] {
-  return [
-    {
-      id: crypto.randomUUID(),
-      shot: "1",
-      visual: `用強烈標題呈現：${script.title}`,
-      narration: script.hook,
-      subtitle: script.hook,
-      broll: "人物看著鏡頭或生活情境特寫"
-    },
-    {
-      id: crypto.randomUUID(),
-      shot: "2",
-      visual: "用簡單畫面說明主要觀念",
-      narration: script.script,
-      subtitle: script.title,
-      broll: "保單、家庭、桌面規劃畫面"
-    },
-    {
-      id: crypto.randomUUID(),
-      shot: "3",
-      visual: "收尾畫面搭配明確行動提示",
-      narration: script.cta,
-      subtitle: script.cta,
-      broll: "手機訊息、預約諮詢或整理資料畫面"
-    }
-  ];
-}
-
-function formatStoryboard(rows: StoryboardRow[]) {
-  return rows
-    .map((row) =>
-      [
-        `鏡次：${row.shot}`,
-        `畫面描述：${row.visual}`,
-        `旁白：${row.narration}`,
-        `字幕：${row.subtitle}`,
-        `B-roll：${row.broll}`
-      ].join("\n")
-    )
-    .join("\n\n");
-}
-
-function parseGptOutput(text: string) {
-  const parsed: Partial<GeneratedScript> = {};
-  let currentKey: ScriptPreviewKey | null = null;
-
-  for (const rawLine of text.split(/\r?\n/)) {
-    const line = rawLine.trim();
-    if (!line) {
-      continue;
-    }
-
-    const heading = gptOutputHeadings.find(({ labels }) =>
-      labels.some((label) =>
-        new RegExp(`^(?:\\d+[\\.、]\\s*)?${label}\\s*[:：]?`).test(line)
-      )
-    );
-
-    if (heading) {
-      currentKey = heading.key;
-      const value = line
-        .replace(new RegExp(`^(?:\\d+[\\.、]\\s*)?${heading.labels[0]}\\s*[:：]?`), "")
-        .trim();
-
-      if (value) {
-        parsed[currentKey] = value;
-      }
-      continue;
-    }
-
-    if (currentKey) {
-      parsed[currentKey] = [parsed[currentKey], line].filter(Boolean).join("\n");
-    }
-  }
-
-  return parsed;
-}
+  buildGptPrompt,
+  buildInitialStoryboard,
+  buildThumbnailPrompt,
+  formatStoryboard,
+  parseGptOutput
+} from "./utils";
 
 export function ContentPage() {
   const [formValues, setFormValues] =
@@ -352,8 +44,6 @@ export function ContentPage() {
   const [gptOutput, setGptOutput] = useState("");
   const [gptImportMessage, setGptImportMessage] = useState<string | null>(null);
   const [scriptStatus, setScriptStatus] = useState<ScriptStatus>("草稿");
-  const [savedScripts, setSavedScripts] = useState<SavedScript[]>([]);
-  const [libraryMessage, setLibraryMessage] = useState<string | null>(null);
   const [thumbnailStyle, setThumbnailStyle] = useState<ThumbnailStyle>("寫實");
   const [thumbnailRatio, setThumbnailRatio] = useState<ThumbnailRatio>("9:16");
   const [thumbnailIncludePerson, setThumbnailIncludePerson] = useState(true);
@@ -362,6 +52,9 @@ export function ContentPage() {
     buildInitialStoryboard(initialGeneratedScript)
   );
   const [storyboardCopyMessage, setStoryboardCopyMessage] = useState<string | null>(null);
+  const { savedScripts, setSavedScripts, libraryMessage, setLibraryMessage } =
+    useScriptLibrary();
+
   const gptPrompt = buildGptPrompt(formValues);
   const thumbnailPrompt = buildThumbnailPrompt({
     script: generatedScript,
@@ -370,29 +63,6 @@ export function ContentPage() {
     ratio: thumbnailRatio,
     includePerson: thumbnailIncludePerson
   });
-
-  useEffect(() => {
-    const saved = window.localStorage.getItem(SCRIPT_LIBRARY_STORAGE_KEY);
-    if (!saved) {
-      return;
-    }
-
-    try {
-      const parsed = JSON.parse(saved) as SavedScript[];
-      if (Array.isArray(parsed)) {
-        setSavedScripts(parsed);
-      }
-    } catch {
-      setLibraryMessage("無法讀取腳本庫，請稍後再試。");
-    }
-  }, []);
-
-  useEffect(() => {
-    window.localStorage.setItem(
-      SCRIPT_LIBRARY_STORAGE_KEY,
-      JSON.stringify(savedScripts)
-    );
-  }, [savedScripts]);
 
   async function handleGenerateScript() {
     setIsGenerating(true);
@@ -559,6 +229,14 @@ export function ContentPage() {
     setLibraryMessage("已刪除腳本。");
   }
 
+  function handleFormChange(key: keyof ScriptGenerationForm, value: string) {
+    setCopyMessage(null);
+    setFormValues((current) => ({
+      ...current,
+      [key]: value
+    }));
+  }
+
   function handleUpdatePreviewField(key: ScriptPreviewKey, value: string) {
     setGeneratedScript((current) => ({
       ...current,
@@ -569,548 +247,73 @@ export function ContentPage() {
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_340px]">
       <section className="space-y-6">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-sm font-medium text-primary">
-              {messages.navigation.content}
-            </p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-normal">
-              把保險想法整理成短影音內容
-            </h2>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-              在 AI 產生與後端儲存加入前，先用示範主題卡與腳本區塊規劃影片點子。
-            </p>
-          </div>
-          <Badge variant="secondary" className="w-fit">
-            {messages.common.staticWorkspace}
-          </Badge>
-        </div>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>主題選擇器</CardTitle>
-            <CardDescription>
-              選擇一個保險主題，作為下一支影片點子的框架。
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              {topics.map((topic) => (
-                <Card key={topic.title} className="min-h-36 shadow-none">
-                  <CardHeader>
-                    <CardTitle>{topic.title}</CardTitle>
-                    <CardDescription>{topic.description}</CardDescription>
-                  </CardHeader>
-                </Card>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div className="space-y-1">
-                <CardTitle>分鏡腳本</CardTitle>
-                <CardDescription>
-                  將目前腳本整理成可編輯的短影音分鏡。
-                </CardDescription>
-              </div>
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <Button variant="outline" onClick={handleBuildStoryboard}>
-                  從目前腳本建立分鏡
-                </Button>
-                <Button variant="outline" onClick={handleCopyStoryboard}>
-                  複製分鏡
-                </Button>
-                <Button onClick={handleAddStoryboardRow}>新增鏡次</Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {storyboardRows.map((row) => (
-              <div
-                key={row.id}
-                className="grid gap-3 rounded-lg border bg-background p-4 lg:grid-cols-[80px_minmax(0,1fr)_minmax(0,1fr)]"
-              >
-                <label className="space-y-2">
-                  <span className="text-sm font-medium">鏡次</span>
-                  <input
-                    className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    value={row.shot}
-                    onChange={(event) =>
-                      handleUpdateStoryboardRow(row.id, "shot", event.target.value)
-                    }
-                  />
-                </label>
-                <label className="space-y-2">
-                  <span className="text-sm font-medium">畫面描述</span>
-                  <textarea
-                    className="min-h-24 w-full resize-y rounded-md border bg-background px-3 py-2 text-sm leading-6 outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    value={row.visual}
-                    onChange={(event) =>
-                      handleUpdateStoryboardRow(row.id, "visual", event.target.value)
-                    }
-                  />
-                </label>
-                <label className="space-y-2">
-                  <span className="text-sm font-medium">旁白</span>
-                  <textarea
-                    className="min-h-24 w-full resize-y rounded-md border bg-background px-3 py-2 text-sm leading-6 outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    value={row.narration}
-                    onChange={(event) =>
-                      handleUpdateStoryboardRow(row.id, "narration", event.target.value)
-                    }
-                  />
-                </label>
-                <label className="space-y-2 lg:col-start-2">
-                  <span className="text-sm font-medium">字幕</span>
-                  <input
-                    className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    value={row.subtitle}
-                    onChange={(event) =>
-                      handleUpdateStoryboardRow(row.id, "subtitle", event.target.value)
-                    }
-                  />
-                </label>
-                <label className="space-y-2">
-                  <span className="text-sm font-medium">B-roll</span>
-                  <input
-                    className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    value={row.broll}
-                    onChange={(event) =>
-                      handleUpdateStoryboardRow(row.id, "broll", event.target.value)
-                    }
-                  />
-                </label>
-                <div className="flex items-end lg:col-start-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDeleteStoryboardRow(row.id)}
-                  >
-                    刪除
-                  </Button>
-                </div>
-              </div>
-            ))}
-            {storyboardCopyMessage ? (
-              <p className="rounded-md border bg-background px-3 py-2 text-sm text-muted-foreground">
-                {storyboardCopyMessage}
-              </p>
-            ) : null}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div className="space-y-1">
-                <CardTitle>縮圖 Prompt Builder</CardTitle>
-                <CardDescription>
-                  根據目前腳本標題、開場、主題與目標客群建立縮圖圖像 Prompt。
-                </CardDescription>
-              </div>
-              <Button variant="outline" onClick={handleCopyThumbnailPrompt}>
-                複製縮圖 Prompt
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-3 md:grid-cols-3">
-              <label className="space-y-2">
-                <span className="text-sm font-medium">風格</span>
-                <select
-                  className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  value={thumbnailStyle}
-                  onChange={(event) => {
-                    setThumbnailCopyMessage(null);
-                    setThumbnailStyle(event.target.value as ThumbnailStyle);
-                  }}
-                >
-                  <option value="寫實">寫實</option>
-                  <option value="插畫">插畫</option>
-                  <option value="3D">3D</option>
-                  <option value="動漫">動漫</option>
-                </select>
-              </label>
-              <label className="space-y-2">
-                <span className="text-sm font-medium">比例</span>
-                <select
-                  className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  value={thumbnailRatio}
-                  onChange={(event) => {
-                    setThumbnailCopyMessage(null);
-                    setThumbnailRatio(event.target.value as ThumbnailRatio);
-                  }}
-                >
-                  <option value="9:16">9:16</option>
-                  <option value="16:9">16:9</option>
-                  <option value="1:1">1:1</option>
-                </select>
-              </label>
-              <label className="flex items-center gap-3 rounded-md border bg-background px-3 py-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={thumbnailIncludePerson}
-                  onChange={(event) => {
-                    setThumbnailCopyMessage(null);
-                    setThumbnailIncludePerson(event.target.checked);
-                  }}
-                />
-                包含人物
-              </label>
-            </div>
-
-            <div className="rounded-lg border bg-secondary/40 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold">縮圖 Prompt 預覽</p>
-                <Badge variant="outline">{messages.common.preview}</Badge>
-              </div>
-              <pre className="mt-3 whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground">
-                {thumbnailPrompt}
-              </pre>
-            </div>
-            {thumbnailCopyMessage ? (
-              <p className="rounded-md border bg-background px-3 py-2 text-sm text-muted-foreground">
-                {thumbnailCopyMessage}
-              </p>
-            ) : null}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div className="space-y-1">
-                <CardTitle>腳本庫</CardTitle>
-                <CardDescription>
-                  將目前預覽卡片儲存在此瀏覽器，稍後可載入或刪除。
-                </CardDescription>
-              </div>
-              <div className="flex flex-col gap-2 sm:flex-row">
-                <select
-                  className="h-10 rounded-md border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  value={scriptStatus}
-                  onChange={(event) =>
-                    setScriptStatus(event.target.value as ScriptStatus)
-                  }
-                >
-                  <option value="草稿">草稿</option>
-                  <option value="已完成">已完成</option>
-                  <option value="已發布">已發布</option>
-                </select>
-                <Button onClick={handleSaveScript}>儲存目前腳本</Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {libraryMessage ? (
-              <p className="rounded-md border bg-background px-3 py-2 text-sm text-muted-foreground">
-                {libraryMessage}
-              </p>
-            ) : null}
-            {savedScripts.length === 0 ? (
-              <div className="rounded-lg border border-dashed bg-muted/40 p-4 text-sm text-muted-foreground">
-                尚未儲存腳本。
-              </div>
-            ) : (
-              <div className="grid gap-4 lg:grid-cols-2">
-                {savedScripts.map((script) => (
-                  <Card key={script.id} className="shadow-none">
-                    <CardHeader>
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="space-y-1">
-                          <CardTitle>{script.title}</CardTitle>
-                          <CardDescription>
-                            {script.topic} / {script.targetAudience}
-                          </CardDescription>
-                        </div>
-                        <Badge variant="outline">{script.status}</Badge>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <p className="line-clamp-3 text-sm leading-6 text-muted-foreground">
-                        {script.hook}
-                      </p>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          onClick={() => handleLoadScript(script)}
-                        >
-                          載入
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeleteScript(script.id)}
-                        >
-                          刪除
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div className="space-y-1">
-                <CardTitle>貼上 GPT 結果</CardTitle>
-                <CardDescription>
-                  將 ChatGPT 產生的內容貼回 DailyOS，並套用到現有預覽卡片。
-                </CardDescription>
-              </div>
-              <Button variant="outline" onClick={handleApplyGptOutput}>
-                套用到預覽卡片
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <textarea
-              className="min-h-56 w-full resize-y rounded-md border bg-background px-3 py-2 text-sm leading-6 outline-none transition-colors placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
-              placeholder={"標題：...\n開場吸引句：...\n腳本：...\n行動呼籲：...\n標籤：...\n封面文字：..."}
-              value={gptOutput}
-              onChange={(event) => {
-                setGptImportMessage(null);
-                setGptOutput(event.target.value);
-              }}
-            />
-            {gptImportMessage ? (
-              <p className="rounded-md border bg-background px-3 py-2 text-sm text-muted-foreground">
-                {gptImportMessage}
-              </p>
-            ) : null}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div className="space-y-1">
-                <CardTitle>{messages.contentStudio.aiScriptGenerator}</CardTitle>
-                <CardDescription>
-                  用目前欄位呼叫 OpenAI，產生保險短影音腳本預覽。
-                </CardDescription>
-              </div>
-              <Badge variant="outline" className="w-fit">
-                OpenAI
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-              {generatorControls.map((control) => (
-                <label
-                  key={control.key}
-                  className="rounded-lg border bg-background p-4"
-                >
-                  <span className="text-xs font-medium text-muted-foreground">
-                    {control.label}
-                  </span>
-                  <select
-                    className="mt-2 h-10 w-full rounded-md border bg-background px-3 text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    value={formValues[control.key]}
-                    onChange={(event) => {
-                      setCopyMessage(null);
-                      setFormValues((current) => ({
-                        ...current,
-                        [control.key]: event.target.value
-                      }));
-                    }}
-                  >
-                    {control.options.map((option) => (
-                      <option key={option} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              ))}
-            </div>
-
-            <div className="space-y-3">
-              <Button onClick={handleGenerateScript} disabled={isGenerating}>
-                {isGenerating ? "產生中..." : messages.contentStudio.generateScript}
-              </Button>
-              {error ? (
-                <p className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-                  {error}
-                </p>
-              ) : null}
-            </div>
-
-            <div className="grid gap-4 lg:grid-cols-2">
-              {previewLabels.map((preview) => (
-                <Card key={preview.key} className="shadow-none">
-                  <CardHeader>
-                    <div className="flex items-start justify-between gap-3">
-                      <CardTitle>{preview.title}</CardTitle>
-                      <Badge variant="outline">可編輯預覽</Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <label className="sr-only" htmlFor={`script-preview-${preview.key}`}>
-                      {preview.title}
-                    </label>
-                    {preview.key === "script" ? (
-                      <textarea
-                        id={`script-preview-${preview.key}`}
-                        className="min-h-32 w-full resize-y rounded-md border bg-secondary/40 p-4 text-sm leading-6 outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                        value={generatedScript[preview.key]}
-                        onChange={(event) =>
-                          handleUpdatePreviewField(preview.key, event.target.value)
-                        }
-                      />
-                    ) : (
-                      <input
-                        id={`script-preview-${preview.key}`}
-                        className="h-12 w-full rounded-md border bg-secondary/40 px-4 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                        value={generatedScript[preview.key]}
-                        onChange={(event) =>
-                          handleUpdatePreviewField(preview.key, event.target.value)
-                        }
-                      />
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div className="space-y-1">
-                <CardTitle>GPT 模式</CardTitle>
-                <CardDescription>
-                  根據目前腳本產生器欄位，建立可貼到 ChatGPT 的繁體中文 Prompt。
-                </CardDescription>
-              </div>
-              <Button variant="outline" onClick={handleCopyGptPrompt}>
-                複製 GPT Prompt
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="rounded-lg border bg-secondary/40 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold">GPT Prompt 預覽</p>
-                <Badge variant="outline">{messages.common.preview}</Badge>
-              </div>
-              <pre className="mt-3 whitespace-pre-wrap break-words text-sm leading-6 text-muted-foreground">
-                {gptPrompt}
-              </pre>
-            </div>
-            {copyMessage ? (
-              <p className="rounded-md border bg-background px-3 py-2 text-sm text-muted-foreground">
-                {copyMessage}
-              </p>
-            ) : null}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div className="space-y-1">
-                <CardTitle>{messages.contentStudio.promptBuilder}</CardTitle>
-                <CardDescription>
-                  用靜態可編輯欄位整理未來的 AI 腳本提示詞。
-                </CardDescription>
-              </div>
-              <Button variant="outline">{messages.contentStudio.copyPrompt}</Button>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="grid gap-4 lg:grid-cols-2">
-              {promptFields.map((field) => (
-                <label key={field.label} className="space-y-2">
-                  <span className="text-sm font-medium">{field.label}</span>
-                  {field.multiline ? (
-                    <textarea
-                      className="min-h-28 w-full resize-none rounded-md border bg-background px-3 py-2 text-sm leading-6 outline-none transition-colors placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
-                      defaultValue={field.value}
-                    />
-                  ) : (
-                    <input
-                      className="h-10 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-ring"
-                      defaultValue={field.value}
-                    />
-                  )}
-                </label>
-              ))}
-            </div>
-
-            <div className="rounded-lg border bg-secondary/40 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold">提示詞預覽</p>
-                <Badge variant="outline">{messages.common.readOnly}</Badge>
-              </div>
-              <p className="mt-3 text-sm leading-6 text-muted-foreground">
-                {promptPreview}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>腳本工作區</CardTitle>
-            <CardDescription>
-              在真正產生腳本前，先用示範區塊規劃影片內容。
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 lg:grid-cols-2">
-              {workspaceSections.map((section) => (
-                <Card key={section.title} className="shadow-none">
-                  <CardHeader>
-                    <div className="flex items-start justify-between gap-3">
-                      <CardTitle>{section.title}</CardTitle>
-                      <Badge variant="outline">{messages.common.draft}</Badge>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="min-h-24 rounded-md border border-dashed bg-muted/40 p-4 text-sm leading-6 text-muted-foreground">
-                      {section.placeholder}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <PageHero />
+        <TopicSelector />
+        <StoryboardBuilder
+          rows={storyboardRows}
+          message={storyboardCopyMessage}
+          onBuild={handleBuildStoryboard}
+          onCopy={handleCopyStoryboard}
+          onAdd={handleAddStoryboardRow}
+          onDelete={handleDeleteStoryboardRow}
+          onUpdate={handleUpdateStoryboardRow}
+        />
+        <ThumbnailPromptBuilder
+          prompt={thumbnailPrompt}
+          style={thumbnailStyle}
+          ratio={thumbnailRatio}
+          includePerson={thumbnailIncludePerson}
+          message={thumbnailCopyMessage}
+          onCopy={handleCopyThumbnailPrompt}
+          onStyleChange={(value) => {
+            setThumbnailCopyMessage(null);
+            setThumbnailStyle(value);
+          }}
+          onRatioChange={(value) => {
+            setThumbnailCopyMessage(null);
+            setThumbnailRatio(value);
+          }}
+          onIncludePersonChange={(value) => {
+            setThumbnailCopyMessage(null);
+            setThumbnailIncludePerson(value);
+          }}
+        />
+        <ScriptLibrary
+          scripts={savedScripts}
+          status={scriptStatus}
+          message={libraryMessage}
+          onStatusChange={setScriptStatus}
+          onSave={handleSaveScript}
+          onLoad={handleLoadScript}
+          onDelete={handleDeleteScript}
+        />
+        <GptOutputImport
+          value={gptOutput}
+          message={gptImportMessage}
+          onChange={(value) => {
+            setGptImportMessage(null);
+            setGptOutput(value);
+          }}
+          onApply={handleApplyGptOutput}
+        />
+        <ScriptGenerator
+          formValues={formValues}
+          script={generatedScript}
+          isGenerating={isGenerating}
+          error={error}
+          onFormChange={handleFormChange}
+          onGenerate={handleGenerateScript}
+          onScriptChange={handleUpdatePreviewField}
+        />
+        <GptMode
+          prompt={gptPrompt}
+          message={copyMessage}
+          onCopy={handleCopyGptPrompt}
+        />
+        <PromptBuilder />
+        <ScriptWorkspace />
       </section>
-
-      <aside className="space-y-4">
-        <Card className="xl:sticky xl:top-24">
-          <CardHeader>
-            <CardTitle>{messages.common.contentAssistant}</CardTitle>
-            <CardDescription>
-              用於規劃影片點子的示範建議。
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ul className="space-y-3">
-              {assistantSuggestions.map((suggestion) => (
-                <li
-                  key={suggestion}
-                  className="rounded-md border bg-secondary/50 px-3 py-3 text-sm leading-6"
-                >
-                  {suggestion}
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      </aside>
+      <ContentAssistant />
     </div>
   );
 }
