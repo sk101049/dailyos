@@ -1,0 +1,141 @@
+{
+  "id": "alpha-video-001",
+  "title": "DailyOS Alpha Video 001 - 有醫療險就夠了嗎？",
+  "createdAt": "2026-07-05T00:00:00.000Z",
+  "provider": "Gemini",
+  "script": {
+    "id": "script-medical-insurance-enough",
+    "title": "有醫療險就夠了嗎？",
+    "topic": "有醫療險就夠了嗎？",
+    "script": "有醫療險，就夠了嗎？醫療險主要幫你處理住院、手術和部分醫療費用。但人生的風險，不只住院而已。像收入中斷、看護費、長期療養、交通雜費，醫療險不一定都會賠。搭配實支實付、重大疾病險、意外險和失能險，保障才比較完整。保險不是花錢，是讓人生多一點選擇權。有醫療險不等於夠保障，做對規劃，讓風險不變成負擔。關注我們，學會聰明保險，守護你所愛的人。"
+  },
+  "character": {
+    "id": "friendly-insurance-host",
+    "name": "Friendly Insurance Host",
+    "hairstyle": "Shoulder-length natural brown hair",
+    "hairColor": "Warm brown",
+    "outfit": "Clean cream top with soft neutral styling",
+    "brandAttributes": "Trustworthy, warm, clear, professional, insurance education"
+  },
+  "voice": {
+    "id": "warm-insurance-educator",
+    "name": "Warm Insurance Educator",
+    "speakingStyle": "Friendly, conversational, clear Traditional Chinese",
+    "tone": "Warm and professional",
+    "speed": "Medium",
+    "pauseLevel": "Medium",
+    "emotionalWarmth": "High"
+  },
+  "storyboard": [
+    {
+      "id": "s01",
+      "shot": "S01",
+      "visual": "Friendly female presenter points upward beside a large question bubble.",
+      "narration": "有醫療險，就夠了嗎？",
+      "subtitle": "有醫療險就夠了嗎？",
+      "characterProfileId": "friendly-insurance-host",
+      "voiceProfileId": "warm-insurance-educator",
+      "cameraShot": "Medium close-up",
+      "backgroundLocation": "Bright home office",
+      "actionGesture": "Pointing gesture",
+      "facialExpression": "Curious and warm"
+    },
+    {
+      "id": "s02",
+      "shot": "S02",
+      "visual": "Hospital icon and medical bill cards appear beside the presenter.",
+      "narration": "醫療險主要幫你處理住院、手術和部分醫療費用。",
+      "subtitle": "醫療險主要幫你付住院費",
+      "characterProfileId": "friendly-insurance-host",
+      "voiceProfileId": "warm-insurance-educator",
+      "cameraShot": "Waist-up",
+      "backgroundLocation": "Clean blue education board",
+      "actionGesture": "Explaining with open hand",
+      "facialExpression": "Clear and reassuring"
+    },
+    {
+      "id": "s03",
+      "shot": "S03",
+      "visual": "Four cards show income loss, caregiver cost, long-term care, and transport.",
+      "narration": "但人生的風險，不只住院而已。像收入中斷、看護費、長期療養、交通雜費，醫療險不一定都會賠。",
+      "subtitle": "這些費用，醫療險不一定賠！",
+      "characterProfileId": "friendly-insurance-host",
+      "voiceProfileId": "warm-insurance-educator",
+      "cameraShot": "Graphic-focused",
+      "backgroundLocation": "White explainer layout",
+      "actionGesture": "Cards slide in",
+      "facialExpression": "Serious but calm"
+    },
+    {
+      "id": "s04",
+      "shot": "S04",
+      "visual": "Checklist highlights實支實付,重大疾病險,意外險,失能險.",
+      "narration": "搭配實支實付、重大疾病險、意外險和失能險，保障才比較完整。",
+      "subtitle": "搭配這些保險，才有完整保障！",
+      "characterProfileId": "friendly-insurance-host",
+      "voiceProfileId": "warm-insurance-educator",
+      "cameraShot": "Medium shot",
+      "backgroundLocation": "Warm pink checklist wall",
+      "actionGesture": "Counting with fingers",
+      "facialExpression": "Helpful and confident"
+    },
+    {
+      "id": "s05",
+      "shot": "S05",
+      "visual": "Presenter makes an encouraging fist beside piggy bank and sparkles.",
+      "narration": "保險不是花錢，是讓人生多一點選擇權。",
+      "subtitle": "保險不是花錢，是讓人生更有選擇權！",
+      "characterProfileId": "friendly-insurance-host",
+      "voiceProfileId": "warm-insurance-educator",
+      "cameraShot": "Medium close-up",
+      "backgroundLocation": "Warm yellow background",
+      "actionGesture": "Encouraging fist",
+      "facialExpression": "Positive and empowering"
+    },
+    {
+      "id": "s06",
+      "shot": "S06",
+      "visual": "Reminder note board with the presenter pointing at the main message.",
+      "narration": "有醫療險不等於夠保障，做對規劃，讓風險不變成負擔。",
+      "subtitle": "有醫療險 ≠ 夠保障。做對規劃，讓風險不變成負擔！",
+      "characterProfileId": "friendly-insurance-host",
+      "voiceProfileId": "warm-insurance-educator",
+      "cameraShot": "Medium shot",
+      "backgroundLocation": "Clean note board",
+      "actionGesture": "Pointing at checklist",
+      "facialExpression": "Trustworthy and clear"
+    },
+    {
+      "id": "s07",
+      "shot": "S07",
+      "visual": "Presenter forms a heart gesture with soft call-to-action text.",
+      "narration": "關注我們，學會聰明保險，守護你所愛的人。",
+      "subtitle": "關注我們，學會聰明保險，守護你所愛的人！",
+      "characterProfileId": "friendly-insurance-host",
+      "voiceProfileId": "warm-insurance-educator",
+      "cameraShot": "Close-up",
+      "backgroundLocation": "Soft pink ending frame",
+      "actionGesture": "Heart hands",
+      "facialExpression": "Warm smile"
+    }
+  ],
+  "config": {
+    "format": "Vertical short video, 9:16",
+    "renderTarget": "Manual Gemini / Google AI Studio handoff",
+    "status": "Ready for manual Gemini generation",
+    "integrations": [
+      "Gemini-ready metadata",
+      "No API keys",
+      "No automatic rendering"
+    ]
+  },
+  "gemini": {
+    "aspectRatio": "9:16",
+    "targetDuration": "30 seconds",
+    "visualStyle": "Warm, bright, trustworthy insurance education short",
+    "characterReferenceNotes": "Female insurance knowledge host, age 30-40, natural, friendly, professional, consistent cream outfit and warm brown shoulder-length hair.",
+    "voiceAudioDirection": "Natural Traditional Chinese narration, warm and clear, medium speed, friendly insurance educator tone.",
+    "subtitleDirection": "Traditional Chinese subtitles, large readable text, high contrast",
+    "outputNotes": "Pending manual Gemini generation."
+  }
+}

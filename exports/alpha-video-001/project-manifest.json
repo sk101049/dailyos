@@ -1,0 +1,20 @@
+{
+  "name": "DailyOS Alpha Video 001 - 有醫療險就夠了嗎？",
+  "createdAt": "2026-07-05T00:00:00.000Z",
+  "provider": "Gemini",
+  "format": "Vertical short video, 9:16",
+  "renderTarget": "Manual Gemini / Google AI Studio handoff",
+  "status": "Ready for manual Gemini generation",
+  "assets": {
+    "scriptId": "script-medical-insurance-enough",
+    "characterId": "friendly-insurance-host",
+    "voiceId": "warm-insurance-educator",
+    "storyboardSceneIds": ["s01", "s02", "s03", "s04", "s05", "s06", "s07"]
+  },
+  "sceneCount": 7,
+  "integrations": [
+    "Gemini-ready metadata",
+    "No API keys",
+    "No automatic rendering"
+  ]
+}
