@@ -14,7 +14,8 @@ const navItems = [
   { href: "/video", label: "Video Studio", marker: "M" },
   { href: "/crm", label: messages.navigation.crm, marker: "R" },
   { href: "/publishing", label: messages.navigation.publishing, marker: "P" },
-  { href: "/calendar", label: messages.navigation.calendar, marker: "L" }
+  { href: "/calendar", label: messages.navigation.calendar, marker: "L" },
+  { href: "/settings/api-keys", label: "API Key 設定", marker: "S" }
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {
