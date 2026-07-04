@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AIImageStudio } from "./components/ai-image-studio";
 import { ContentAssistant } from "./components/content-assistant";
 import { GptMode } from "./components/gpt-mode";
 import { GptOutputImport } from "./components/gpt-output-import";
@@ -281,6 +282,7 @@ export function ContentPage() {
           onDelete={handleDeleteStoryboardRow}
           onUpdate={handleUpdateStoryboardRow}
         />
+        <AIImageStudio script={generatedScript} storyboardRows={storyboardRows} />
         <ThumbnailPromptBuilder
           prompt={thumbnailPrompt}
           style={thumbnailStyle}
