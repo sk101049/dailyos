@@ -90,6 +90,7 @@ export function CalendarPage() {
   const [currentMonth, setCurrentMonth] = useState(() => new Date());
   const [selectedDate, setSelectedDate] = useState(today);
   const [tasks, setTasks] = useState<ContentTask[]>(initialTasks);
+  const [hasLoadedTasks, setHasLoadedTasks] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<TaskForm>(() => emptyForm(today));
 
@@ -99,6 +100,7 @@ export function CalendarPage() {
   useEffect(() => {
     const saved = window.localStorage.getItem(STORAGE_KEY);
     if (!saved) {
+      setHasLoadedTasks(true);
       return;
     }
 
@@ -109,12 +111,18 @@ export function CalendarPage() {
       }
     } catch {
       window.localStorage.removeItem(STORAGE_KEY);
+    } finally {
+      setHasLoadedTasks(true);
     }
   }, []);
 
   useEffect(() => {
+    if (!hasLoadedTasks) {
+      return;
+    }
+
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-  }, [tasks]);
+  }, [hasLoadedTasks, tasks]);
 
   function selectDate(date: string) {
     setSelectedDate(date);
