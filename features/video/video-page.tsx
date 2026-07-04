@@ -77,6 +77,20 @@ type GeminiSettings = {
   outputNotes: string;
 };
 
+type ProviderStatus = {
+  id: string;
+  label: string;
+  installed: boolean;
+  configured: boolean;
+  envVars: string[];
+  missingEnvVars: string[];
+  manualWorkflow: boolean;
+  connectionTest: {
+    status: string;
+    message: string;
+  };
+};
+
 const SCRIPT_KEY = "dailyos-script-library";
 const CHARACTER_KEY = "dailyos-character-library";
 const VOICE_KEY = "dailyos-voice-library";
@@ -218,6 +232,7 @@ export function VideoPage() {
   });
   const [message, setMessage] = useState<string | null>(null);
   const [packages, setPackages] = useState<ProductionPackage[]>([]);
+  const [providerStatuses, setProviderStatuses] = useState<ProviderStatus[]>([]);
 
   useEffect(() => {
     const loadedScripts = readArray<ScriptAsset>(SCRIPT_KEY);
@@ -234,6 +249,10 @@ export function VideoPage() {
     setScriptId(loadedScripts[0]?.id ?? "");
     setCharacterId(loadedCharacters[0]?.id ?? "");
     setVoiceId(loadedVoices[0]?.id ?? "");
+  }, []);
+
+  useEffect(() => {
+    void loadProviderStatuses();
   }, []);
 
   const productionPackage = useMemo<ProductionPackage>(() => {
@@ -291,6 +310,16 @@ export function VideoPage() {
 
   function updateGeminiSettings(key: keyof GeminiSettings, value: string) {
     setGeminiSettings((current) => ({ ...current, [key]: value }));
+  }
+
+  async function loadProviderStatuses() {
+    try {
+      const response = await fetch("/api/video-providers");
+      const payload = (await response.json()) as { providers?: ProviderStatus[] };
+      setProviderStatuses(Array.isArray(payload.providers) ? payload.providers : []);
+    } catch {
+      setProviderStatuses([]);
+    }
   }
 
   return (
@@ -518,6 +547,49 @@ export function VideoPage() {
             <div className="rounded-md border bg-secondary/30 p-3 text-sm text-muted-foreground">
               這版不使用 API key、不假設付費權限，也不自動 render。
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <CardTitle>Provider 狀態</CardTitle>
+                <CardDescription>Server-side config only</CardDescription>
+              </div>
+              <Button variant="outline" size="sm" onClick={loadProviderStatuses}>
+                重新檢查
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {providerStatuses.length === 0 ? (
+              <p className="rounded-md border bg-background p-3 text-sm text-muted-foreground">
+                尚未取得 provider 狀態。
+              </p>
+            ) : (
+              providerStatuses.map((item) => (
+                <div key={item.id} className="rounded-md border bg-background p-3 text-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="font-medium">{item.label}</p>
+                      <p className="mt-1 text-muted-foreground">
+                        {item.connectionTest.message}
+                      </p>
+                    </div>
+                    <Badge variant={item.configured ? "default" : "outline"}>
+                      {item.configured ? "已設定" : "未設定"}
+                    </Badge>
+                  </div>
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    Env: {item.envVars.join(", ")}
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Connection test: {item.connectionTest.status}
+                  </p>
+                </div>
+              ))
+            )}
           </CardContent>
         </Card>
       </aside>
