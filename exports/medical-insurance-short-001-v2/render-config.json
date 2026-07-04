@@ -1,0 +1,109 @@
+{
+  "videoSrc": "file:///C:/Users/sk101/Documents/AI-Media-Platform-Codex/exports/medical-insurance-short-001-v2/presenter-base.mp4",
+  "wordsPerPage": 1,
+  "fontSize": 76,
+  "highlightColor": "#FFFFFF",
+  "captions": [
+    {
+      "word": "有醫療險，就真的夠了嗎？",
+      "startMs": 0,
+      "endMs": 4500
+    },
+    {
+      "word": "它能幫你處理住院、手術，和部分醫療支出。",
+      "startMs": 4500,
+      "endMs": 9000
+    },
+    {
+      "word": "真正要留意的，是療養期間的收入中斷。",
+      "startMs": 9000,
+      "endMs": 13500
+    },
+    {
+      "word": "看護費、房貸、家庭開銷，也可能一起出現。",
+      "startMs": 13500,
+      "endMs": 18000
+    },
+    {
+      "word": "保單健檢，不只看有沒有醫療險。",
+      "startMs": 18000,
+      "endMs": 23500
+    },
+    {
+      "word": "而是看三個缺口：醫療費、收入替代、家庭責任。",
+      "startMs": 23500,
+      "endMs": 30000
+    }
+  ],
+  "overlays": [
+    {
+      "id": "hook",
+      "type": "hero_title",
+      "position": "upper_third",
+      "in_seconds": 0,
+      "out_seconds": 4.5,
+      "text": "醫療險夠了嗎？",
+      "subtitle": "30 秒保單健檢"
+    },
+    {
+      "id": "medical",
+      "type": "kpi_grid",
+      "position": "upper_third",
+      "in_seconds": 4.5,
+      "out_seconds": 9,
+      "title": "醫療險常見範圍",
+      "columns": 3,
+      "backgroundColor": "#FFFFFF",
+      "chartColors": ["#0EA5E9", "#22C55E", "#F97316"],
+      "chartData": [
+        { "label": "住院", "value": 1, "change": 0, "suffix": "" },
+        { "label": "手術", "value": 1, "change": 0, "suffix": "" },
+        { "label": "醫療費", "value": 1, "change": 0, "suffix": "" }
+      ]
+    },
+    {
+      "id": "income",
+      "type": "callout",
+      "position": "upper_third",
+      "in_seconds": 9,
+      "out_seconds": 13.5,
+      "title": "常被忽略",
+      "text": "療養期間的收入中斷",
+      "callout_type": "tip",
+      "backgroundColor": "#FFF7ED",
+      "accentColor": "#F97316",
+      "color": "#111827"
+    },
+    {
+      "id": "expenses",
+      "type": "comparison",
+      "position": "upper_third",
+      "in_seconds": 13.5,
+      "out_seconds": 18,
+      "title": "缺口不只醫療費",
+      "leftLabel": "醫療險",
+      "leftValue": "醫療支出",
+      "rightLabel": "生活責任",
+      "rightValue": "看護、房貸、家庭開銷",
+      "backgroundColor": "#ECFEFF",
+      "accentColor": "#06B6D4",
+      "color": "#111827"
+    },
+    {
+      "id": "checkup",
+      "type": "kpi_grid",
+      "position": "upper_third",
+      "in_seconds": 18,
+      "out_seconds": 30,
+      "title": "保單健檢三件事",
+      "columns": 3,
+      "backgroundColor": "#FDF2F8",
+      "chartColors": ["#0EA5E9", "#22C55E", "#EC4899"],
+      "chartData": [
+        { "label": "醫療費", "value": 1, "change": 0, "suffix": "" },
+        { "label": "收入替代", "value": 2, "change": 0, "suffix": "" },
+        { "label": "家庭責任", "value": 3, "change": 0, "suffix": "" }
+      ]
+    }
+  ]
+}
