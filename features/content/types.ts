@@ -33,6 +33,14 @@ export type StoryboardRow = {
   narration: string;
   subtitle: string;
   broll: string;
+  characterProfileId?: string;
+  voiceProfileId?: string;
+  cameraShot?: string;
+  backgroundLocation?: string;
+  actionGesture?: string;
+  facialExpression?: string;
+  imagePrompt?: string;
+  videoPrompt?: string;
 };
 
 export type SavedScript = GeneratedScript & {

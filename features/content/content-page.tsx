@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AIImageStudio } from "./components/ai-image-studio";
 import { ContentAssistant } from "./components/content-assistant";
 import { DigitalHumanStudio } from "./components/digital-human-studio";
@@ -53,6 +53,7 @@ export function ContentPage() {
   const [storyboardRows, setStoryboardRows] = useState<StoryboardRow[]>(() =>
     buildInitialStoryboard(initialGeneratedScript)
   );
+  const [hasLoadedStoryboard, setHasLoadedStoryboard] = useState(false);
   const [storyboardCopyMessage, setStoryboardCopyMessage] = useState<string | null>(null);
   const { savedScripts, setSavedScripts, libraryMessage, setLibraryMessage } =
     useScriptLibrary();
@@ -65,6 +66,31 @@ export function ContentPage() {
     ratio: thumbnailRatio,
     includePerson: thumbnailIncludePerson
   });
+
+  useEffect(() => {
+    const saved = window.localStorage.getItem("dailyos-storyboard-v2");
+    if (!saved) {
+      setHasLoadedStoryboard(true);
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(saved) as StoryboardRow[];
+      if (Array.isArray(parsed)) {
+        setStoryboardRows(parsed);
+      }
+    } catch {
+      window.localStorage.removeItem("dailyos-storyboard-v2");
+    } finally {
+      setHasLoadedStoryboard(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (hasLoadedStoryboard) {
+      window.localStorage.setItem("dailyos-storyboard-v2", JSON.stringify(storyboardRows));
+    }
+  }, [hasLoadedStoryboard, storyboardRows]);
 
   async function handleGenerateScript() {
     setIsGenerating(true);
@@ -172,10 +198,26 @@ export function ContentPage() {
         visual: "",
         narration: "",
         subtitle: "",
-        broll: ""
+        broll: "",
+        cameraShot: "Medium shot",
+        backgroundLocation: "",
+        actionGesture: "",
+        facialExpression: ""
       }
     ]);
     setStoryboardCopyMessage(null);
+  }
+
+  function handleApplyCharacterLock(characterProfileId: string) {
+    setStoryboardRows((rows) =>
+      rows.map((row) => ({ ...row, characterProfileId }))
+    );
+    setStoryboardCopyMessage("Character lock applied to all scenes.");
+  }
+
+  function handleApplyVoiceLock(voiceProfileId: string) {
+    setStoryboardRows((rows) => rows.map((row) => ({ ...row, voiceProfileId })));
+    setStoryboardCopyMessage("Voice lock applied to all scenes.");
   }
 
   function handleDeleteStoryboardRow(id: string) {
@@ -282,6 +324,8 @@ export function ContentPage() {
           onAdd={handleAddStoryboardRow}
           onDelete={handleDeleteStoryboardRow}
           onUpdate={handleUpdateStoryboardRow}
+          onApplyCharacterLock={handleApplyCharacterLock}
+          onApplyVoiceLock={handleApplyVoiceLock}
         />
         <AIImageStudio script={generatedScript} storyboardRows={storyboardRows} />
         <DigitalHumanStudio script={generatedScript} />
