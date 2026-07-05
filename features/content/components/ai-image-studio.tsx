@@ -31,7 +31,7 @@ function fileNames(files: FileList | null) {
 }
 
 function compactList(items: string[]) {
-  return items.length > 0 ? items.join(", ") : "No references uploaded";
+  return items.length > 0 ? items.join(", ") : "尚未上傳參考";
 }
 
 export function AIImageStudio({ script, storyboardRows }: AIImageStudioProps) {
@@ -75,35 +75,35 @@ export function AIImageStudio({ script, storyboardRows }: AIImageStudioProps) {
   function generateCharacterTemplate() {
     const item: LibraryItem = {
       id: crypto.randomUUID(),
-      title: `${script.title} character template`,
-      description: "Presenter sheet placeholder with identity, outfit, palette, expressions, and gestures.",
+      title: `${script.title} 人物模板`,
+      description: "包含身分、服裝、色彩、表情與手勢的人物模板草稿。",
       prompt: promptPackage
     };
 
     setCharacterLibrary((items) => [item, ...items]);
-    setMessage("Character template prompt saved to project library.");
+    setMessage("已儲存人物模板提示詞。");
   }
 
   function generateStoryboardImages() {
     const item: LibraryItem = {
       id: crypto.randomUUID(),
-      title: `${script.title} storyboard package`,
-      description: "Storyboard image package placeholder with scene frames, full sheet, and generation prompts.",
+      title: `${script.title} 分鏡圖像包`,
+      description: "包含場次圖、完整分鏡表與生成提示詞的草稿。",
       prompt: promptPackage
     };
 
     setStoryboardLibrary((items) => [item, ...items]);
-    setMessage("Storyboard image prompt package saved to project library.");
+    setMessage("已儲存分鏡圖像提示詞。");
   }
 
   async function copyPromptPackage() {
     if (!navigator.clipboard?.writeText) {
-      setMessage("Clipboard is unavailable. Prompt package is visible below.");
+      setMessage("目前無法使用剪貼簿，請從下方手動複製。");
       return;
     }
 
     await navigator.clipboard.writeText(promptPackage);
-    setMessage("Prompt package copied.");
+    setMessage("已複製提示詞包。");
   }
 
   return (
@@ -111,17 +111,17 @@ export function AIImageStudio({ script, storyboardRows }: AIImageStudioProps) {
       <CardHeader>
         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-1">
-            <CardTitle>AI Image Studio</CardTitle>
+            <CardTitle>AI 圖像工作室</CardTitle>
             <CardDescription>
-              Generate provider-agnostic character templates and storyboard image prompts from the current script.
+              從目前腳本整理人物模板與分鏡圖像提示詞。
             </CardDescription>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={generateCharacterTemplate}>
-              Generate Character Template
+              產生人物模板
             </Button>
             <Button onClick={generateStoryboardImages}>
-              Generate Storyboard Images
+              產生分鏡圖像
             </Button>
           </div>
         </div>
@@ -129,7 +129,7 @@ export function AIImageStudio({ script, storyboardRows }: AIImageStudioProps) {
       <CardContent className="space-y-5">
         <section className="grid gap-3 lg:grid-cols-4">
           <label className="space-y-2 rounded-lg border bg-background p-3">
-            <span className="text-sm font-medium">Upload References</span>
+            <span className="text-sm font-medium">上傳人物參考</span>
             <input
               type="file"
               multiple
@@ -138,11 +138,11 @@ export function AIImageStudio({ script, storyboardRows }: AIImageStudioProps) {
               onChange={(event) => setCharacterReferences(fileNames(event.target.files))}
             />
             <span className="block text-xs text-muted-foreground">
-              Character: {compactList(characterReferences)}
+              人物：{compactList(characterReferences)}
             </span>
           </label>
           <label className="space-y-2 rounded-lg border bg-background p-3">
-            <span className="text-sm font-medium">Style Reference Boards</span>
+            <span className="text-sm font-medium">風格參考板</span>
             <input
               type="file"
               multiple
@@ -151,11 +151,11 @@ export function AIImageStudio({ script, storyboardRows }: AIImageStudioProps) {
               onChange={(event) => setStyleReferences(fileNames(event.target.files))}
             />
             <span className="block text-xs text-muted-foreground">
-              Style: {compactList(styleReferences)}
+              風格：{compactList(styleReferences)}
             </span>
           </label>
           <label className="space-y-2 rounded-lg border bg-background p-3">
-            <span className="text-sm font-medium">Storyboard Layouts</span>
+            <span className="text-sm font-medium">分鏡版面</span>
             <input
               type="file"
               multiple
@@ -164,19 +164,19 @@ export function AIImageStudio({ script, storyboardRows }: AIImageStudioProps) {
               onChange={(event) => setStoryboardReferences(fileNames(event.target.files))}
             />
             <span className="block text-xs text-muted-foreground">
-              Layout: {compactList(storyboardReferences)}
+              版面：{compactList(storyboardReferences)}
             </span>
           </label>
           <label className="space-y-2 rounded-lg border bg-background p-3">
-            <span className="text-sm font-medium">Apply References To</span>
+            <span className="text-sm font-medium">套用參考到</span>
             <select
               className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
               value={referenceMode}
               onChange={(event) => setReferenceMode(event.target.value as ReferenceMode)}
             >
-              <option value="both">Character and style</option>
-              <option value="character">Character only</option>
-              <option value="style">Style only</option>
+              <option value="both">人物與風格</option>
+              <option value="character">只套用人物</option>
+              <option value="style">只套用風格</option>
             </select>
           </label>
         </section>
@@ -184,12 +184,12 @@ export function AIImageStudio({ script, storyboardRows }: AIImageStudioProps) {
         <section className="grid gap-4 xl:grid-cols-2">
           <div className="rounded-lg border bg-secondary/40 p-4">
             <div className="flex items-center justify-between gap-3">
-              <h3 className="text-sm font-semibold">Character Library</h3>
-              <Badge variant="outline">Template Sheet</Badge>
+              <h3 className="text-sm font-semibold">人物模板庫</h3>
+              <Badge variant="outline">模板表</Badge>
             </div>
             <div className="mt-3 space-y-2">
               {characterLibrary.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No character templates yet.</p>
+                <p className="text-sm text-muted-foreground">尚無人物模板。</p>
               ) : (
                 characterLibrary.map((item) => (
                   <article key={item.id} className="rounded-md border bg-background p-3">
@@ -202,12 +202,12 @@ export function AIImageStudio({ script, storyboardRows }: AIImageStudioProps) {
           </div>
           <div className="rounded-lg border bg-secondary/40 p-4">
             <div className="flex items-center justify-between gap-3">
-              <h3 className="text-sm font-semibold">Storyboard Library</h3>
-              <Badge variant="outline">Scene Images</Badge>
+              <h3 className="text-sm font-semibold">分鏡圖像庫</h3>
+              <Badge variant="outline">場景圖</Badge>
             </div>
             <div className="mt-3 space-y-2">
               {storyboardLibrary.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No storyboard image packages yet.</p>
+                <p className="text-sm text-muted-foreground">尚無分鏡圖像包。</p>
               ) : (
                 storyboardLibrary.map((item) => (
                   <article key={item.id} className="rounded-md border bg-background p-3">
@@ -223,13 +223,13 @@ export function AIImageStudio({ script, storyboardRows }: AIImageStudioProps) {
         <section className="rounded-lg border bg-background p-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h3 className="text-sm font-semibold">Prompt Package</h3>
+              <h3 className="text-sm font-semibold">提示詞包</h3>
               <p className="text-xs text-muted-foreground">
-                Includes character sheet, individual scene images, full storyboard sheet, and generation notes.
+                包含人物表、單場景圖、完整分鏡表與生成備註。
               </p>
             </div>
             <Button variant="outline" onClick={copyPromptPackage}>
-              Copy Prompt Package
+              複製提示詞包
             </Button>
           </div>
           <pre className="mt-3 max-h-72 overflow-auto whitespace-pre-wrap break-words rounded-md bg-secondary/40 p-3 text-sm leading-6 text-muted-foreground">

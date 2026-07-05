@@ -10,6 +10,7 @@ export const messages = {
     content: "內容工作室",
     contentStudio: "內容工作室",
     aiScript: "AI 腳本",
+    trendCenter: "趨勢中心",
     storyboard: "分鏡",
     character: "人物模板",
     voice: "聲音",

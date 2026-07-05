@@ -41,7 +41,7 @@ export function ScriptGenerator({
           <div className="space-y-1">
             <CardTitle>{messages.contentStudio.aiScriptGenerator}</CardTitle>
             <CardDescription>
-              用目前欄位呼叫 OpenAI，產生保險短影音腳本預覽。
+              用目前分類與欄位產生短影音腳本預覽。
             </CardDescription>
           </div>
           <Badge variant="outline" className="w-fit">
@@ -50,7 +50,7 @@ export function ScriptGenerator({
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-6">
           {generatorControls.map((control) => (
             <label
               key={control.key}

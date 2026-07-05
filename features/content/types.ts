@@ -1,4 +1,5 @@
 export type ScriptGenerationForm = {
+  category: string;
   topic: string;
   targetAudience: string;
   videoLength: string;

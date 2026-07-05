@@ -13,7 +13,7 @@ export function TopicSelector() {
       <CardHeader>
         <CardTitle>主題選擇器</CardTitle>
         <CardDescription>
-          選擇一個保險主題，作為下一支影片點子的框架。
+          選擇一個內容方向，作為下一支影片點子的框架。
         </CardDescription>
       </CardHeader>
       <CardContent>

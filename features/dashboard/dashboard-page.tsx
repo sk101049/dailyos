@@ -155,7 +155,7 @@ export function DashboardPage() {
   const [tasks, setTasks] = useState<ContentTask[]>(initialTasks);
   const [publishing, setPublishing] = useState<PublishingItem[]>(initialPublishing);
   const [activeProject, setActiveProject] = useState<CreatorProject | null>(null);
-  const [projectTitle, setProjectTitle] = useState("DailyOS Creator Project");
+  const [projectTitle, setProjectTitle] = useState("今日創作專案");
   const [scriptId, setScriptId] = useState("");
   const [characterId, setCharacterId] = useState("");
   const [voiceId, setVoiceId] = useState("");
@@ -180,7 +180,7 @@ export function DashboardPage() {
     setTasks(readArray<ContentTask>(CALENDAR_KEY, initialTasks));
     setPublishing(readArray<PublishingItem>(PUBLISHING_KEY, initialPublishing));
     setActiveProject(project);
-    setProjectTitle(project?.name ?? window.localStorage.getItem(PROJECT_KEY) ?? loadedPackages[0]?.title ?? "DailyOS Creator Project");
+    setProjectTitle(project?.name ?? window.localStorage.getItem(PROJECT_KEY) ?? loadedPackages[0]?.title ?? "今日創作專案");
     setScriptId(project?.scriptIds[0] ?? loadedPackages[0]?.script?.id ?? loadedScripts[0]?.id ?? "");
     setCharacterId(project?.defaultCharacterId ?? loadedPackages[0]?.character?.id ?? loadedCharacters[0]?.id ?? "");
     setVoiceId(project?.defaultVoiceId ?? loadedPackages[0]?.voice?.id ?? loadedVoices[0]?.id ?? "");
@@ -197,7 +197,7 @@ export function DashboardPage() {
 
     return {
       id: crypto.randomUUID(),
-      title: projectTitle || "DailyOS Creator Project",
+      title: projectTitle || "今日創作專案",
       createdAt: new Date().toISOString(),
       provider,
       script: findById(scripts, scriptId),
@@ -209,10 +209,10 @@ export function DashboardPage() {
         voiceProfileId: scene.voiceProfileId || voice?.id
       })),
       config: {
-        format: "Vertical short video, 9:16",
-        renderTarget: provider === "Gemini" ? "Manual Gemini / Google AI Studio handoff" : "Manual OpenMontage handoff",
-        status: "Ready for review",
-        integrations: [`${provider}-ready metadata`, "No API keys", "No automatic rendering"]
+        format: "直式短影音 9:16",
+        renderTarget: provider === "Gemini" ? "手動交接 Gemini / Google AI Studio" : "手動交接 OpenMontage",
+        status: "待檢查",
+        integrations: [`${provider} metadata`, "不需要 API key", "不自動生成影片"]
       }
     };
   }, [characterId, characters, projectTitle, provider, scriptId, scripts, storyboard, voiceId, voices]);
@@ -231,6 +231,7 @@ export function DashboardPage() {
   const missingRequiredSteps = steps.slice(0, 6).filter((step) => !step.done);
   const todayTasks = tasks.filter((task) => task.publishDate === today);
   const activePublishing = publishing.filter((item) => item.status !== "已發布").slice(0, 4);
+  const recentVideos = packages.slice(0, 3);
 
   function savePackage() {
     const next = [productionPackage, ...packages];
@@ -246,15 +247,65 @@ export function DashboardPage() {
           <div>
             <p className="text-sm font-medium text-primary">創作者儀表板</p>
             <h2 className="mt-2 text-3xl font-semibold tracking-normal">
-              今日內容生產工作台
+              今天的創作工作台
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-              從同一個入口選專案、腳本、人物、聲音、分鏡與 provider，最後產生本機 production package。
+              先看今日專案與製作進度，再開始下一支影片。
             </p>
           </div>
-          <Badge variant="secondary" className="w-fit">
-            僅本機儲存
-          </Badge>
+          <Button asChild>
+            <Link href="/content#script">開始今天的影片</Link>
+          </Button>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card>
+            <CardHeader>
+              <CardTitle>今日專案</CardTitle>
+              <CardDescription>{activeProject?.description || "尚未設定專案描述。"}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <p className="text-lg font-semibold">{activeProject?.name ?? projectTitle}</p>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/projects">管理專案</Link>
+              </Button>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>今日製作進度</CardTitle>
+              <CardDescription>{completedSteps} / {steps.length} 步完成</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="h-2 overflow-hidden rounded-full bg-secondary">
+                <div
+                  className="h-full bg-primary transition-all"
+                  style={{ width: `${(completedSteps / steps.length) * 100}%` }}
+                />
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {missingSteps[0] ? `下一步：${missingSteps[0].label}` : "今天的製作素材已齊全。"}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>最近影片</CardTitle>
+              <CardDescription>最近建立的製作包</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {recentVideos.length === 0 ? (
+                <p className="text-sm text-muted-foreground">尚未建立影片製作包。</p>
+              ) : (
+                recentVideos.map((item) => (
+                  <p key={item.id} className="truncate text-sm font-medium">{item.title}</p>
+                ))
+              )}
+              <Button asChild variant="outline" size="sm">
+                <Link href="/video#export">前往影片工作室</Link>
+              </Button>
+            </CardContent>
+          </Card>
         </div>
 
         <Card>
@@ -347,7 +398,7 @@ export function DashboardPage() {
         <div className="grid gap-4 md:grid-cols-2">
           <Card>
             <CardHeader>
-              <CardTitle>今日 Calendar 任務</CardTitle>
+              <CardTitle>今日行事曆任務</CardTitle>
               <CardDescription>{today} 的內容排程</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -363,7 +414,7 @@ export function DashboardPage() {
                 </div>
               ))}
               <Button asChild variant="outline" size="sm">
-                <Link href="/calendar">開啟 Calendar</Link>
+                <Link href="/calendar">開啟行事曆</Link>
               </Button>
             </CardContent>
           </Card>

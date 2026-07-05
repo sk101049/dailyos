@@ -369,7 +369,7 @@ export function VideoPage() {
     [geminiSettings, productionPackage]
   );
   const nextSteps = [
-    productionPackage.script ? null : "到 Script Studio 儲存一支腳本。",
+    productionPackage.script ? null : "到 AI 腳本儲存一支腳本。",
     productionPackage.character ? null : "到人物模板建立一個人物。",
     productionPackage.voice ? null : "到聲音工作室建立一個聲音。",
     productionPackage.storyboard.length ? null : "到分鏡工作區建立分鏡場次。"

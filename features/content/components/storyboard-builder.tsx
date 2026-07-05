@@ -166,7 +166,7 @@ export function StoryboardBuilder({
 
   async function copyText(text: string, success: string) {
     if (!navigator.clipboard?.writeText) {
-      setPromptMessage("Clipboard is unavailable. Prompt preview is visible below.");
+      setPromptMessage("目前無法使用剪貼簿，請從下方手動複製。");
       return;
     }
 
@@ -179,7 +179,7 @@ export function StoryboardBuilder({
     const voice = findById(voices, row.voiceProfileId);
     onUpdate(row.id, "imagePrompt", buildSceneImagePrompt(row, character));
     onUpdate(row.id, "videoPrompt", buildSceneVideoPrompt(row, character, voice));
-    setPromptMessage(`Generated prompts for scene ${row.shot}.`);
+    setPromptMessage(`已產生第 ${row.shot} 場提示詞。`);
   }
 
   return (
@@ -187,26 +187,26 @@ export function StoryboardBuilder({
       <CardHeader>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-1">
-            <CardTitle>Storyboard Studio v2</CardTitle>
+            <CardTitle>分鏡工作室 v2</CardTitle>
             <CardDescription>
-              Assign character and voice profiles, lock identity across scenes, and export prompt packages.
+              指派人物與聲音設定，鎖定每個場景的一致性，並匯出提示詞包。
             </CardDescription>
           </div>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" onClick={onBuild}>
-              Build from Script
+              從腳本建立
             </Button>
             <Button variant="outline" onClick={onCopy}>
-              Copy Basic Storyboard
+              複製基本分鏡
             </Button>
-            <Button onClick={onAdd}>Add Scene</Button>
+            <Button onClick={onAdd}>新增場景</Button>
           </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="grid gap-3 rounded-lg border bg-secondary/30 p-4 lg:grid-cols-2">
           <label className="space-y-2">
-            <span className="text-sm font-medium">Character Lock</span>
+            <span className="text-sm font-medium">人物鎖定</span>
             <select
               className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
               defaultValue=""
@@ -216,7 +216,7 @@ export function StoryboardBuilder({
                 }
               }}
             >
-              <option value="">Apply one character to all scenes...</option>
+              <option value="">套用同一人物到所有場景...</option>
               {characters.map((character) => (
                 <option key={character.id} value={character.id}>
                   {character.name}
@@ -225,7 +225,7 @@ export function StoryboardBuilder({
             </select>
           </label>
           <label className="space-y-2">
-            <span className="text-sm font-medium">Voice Lock</span>
+            <span className="text-sm font-medium">聲音鎖定</span>
             <select
               className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
               defaultValue=""
@@ -235,7 +235,7 @@ export function StoryboardBuilder({
                 }
               }}
             >
-              <option value="">Apply one voice to all scenes...</option>
+              <option value="">套用同一聲音到所有場景...</option>
               {voices.map((voice) => (
                 <option key={voice.id} value={voice.id}>
                   {voice.name}
@@ -255,75 +255,75 @@ export function StoryboardBuilder({
             <div key={row.id} className="space-y-4 rounded-lg border bg-background p-4">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <Badge variant="outline">Scene {row.shot}</Badge>
+                  <Badge variant="outline">場景 {row.shot}</Badge>
                   <p className="mt-2 text-sm text-muted-foreground">
-                    {character?.name ?? "No character"} / {voice?.name ?? "No voice"}
+                    {character?.name ?? "尚未選人物"} / {voice?.name ?? "尚未選聲音"}
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
                   <Button variant="outline" size="sm" onClick={() => applyGeneratedPrompts(row)}>
-                    Generate Prompts
+                    產生提示詞
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
                     onClick={() =>
                       copyText(
-                        [`# Scene ${row.shot}`, "", imagePrompt, "", videoPrompt].join("\n"),
-                        `Scene ${row.shot} prompt copied.`
+                        [`# 場景 ${row.shot}`, "", imagePrompt, "", videoPrompt].join("\n"),
+                        `已複製第 ${row.shot} 場提示詞。`
                       )
                     }
                   >
-                    Copy Scene
+                    複製場景
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => onDelete(row.id)}>
-                    Delete
+                    刪除
                   </Button>
                 </div>
               </div>
 
               <div className="grid gap-3 lg:grid-cols-3">
                 <TextInput
-                  label="Scene"
+                  label="場景"
                   value={row.shot}
                   onChange={(value) => onUpdate(row.id, "shot", value)}
                 />
                 <SelectInput
-                  label="Character"
+                  label="人物"
                   value={row.characterProfileId ?? ""}
                   options={characters.map((item) => ({ label: item.name, value: item.id }))}
-                  placeholder="Select character..."
+                  placeholder="選擇人物..."
                   onChange={(value) => onUpdate(row.id, "characterProfileId", value)}
                 />
                 <SelectInput
-                  label="Voice"
+                  label="聲音"
                   value={row.voiceProfileId ?? ""}
                   options={voices.map((item) => ({ label: item.name, value: item.id }))}
-                  placeholder="Select voice..."
+                  placeholder="選擇聲音..."
                   onChange={(value) => onUpdate(row.id, "voiceProfileId", value)}
                 />
                 <TextInput
-                  label="Camera shot"
+                  label="鏡位"
                   value={row.cameraShot ?? ""}
                   onChange={(value) => onUpdate(row.id, "cameraShot", value)}
                 />
                 <TextInput
-                  label="Background / location"
+                  label="背景 / 地點"
                   value={row.backgroundLocation ?? ""}
                   onChange={(value) => onUpdate(row.id, "backgroundLocation", value)}
                 />
                 <TextInput
-                  label="Action / gesture"
+                  label="動作 / 手勢"
                   value={row.actionGesture ?? ""}
                   onChange={(value) => onUpdate(row.id, "actionGesture", value)}
                 />
                 <TextInput
-                  label="Facial expression"
+                  label="表情"
                   value={row.facialExpression ?? ""}
                   onChange={(value) => onUpdate(row.id, "facialExpression", value)}
                 />
                 <TextInput
-                  label="Subtitle"
+                  label="字幕"
                   value={row.subtitle}
                   onChange={(value) => onUpdate(row.id, "subtitle", value)}
                 />
@@ -336,23 +336,23 @@ export function StoryboardBuilder({
 
               <div className="grid gap-3 lg:grid-cols-2">
                 <TextArea
-                  label="Visual"
+                  label="畫面"
                   value={row.visual}
                   onChange={(value) => onUpdate(row.id, "visual", value)}
                 />
                 <TextArea
-                  label="Voiceover segment"
+                  label="旁白段落"
                   value={row.narration}
                   onChange={(value) => onUpdate(row.id, "narration", value)}
                 />
                 <TextArea
-                  label="Image prompt"
+                  label="圖像提示詞"
                   value={row.imagePrompt ?? ""}
                   placeholder={imagePrompt}
                   onChange={(value) => onUpdate(row.id, "imagePrompt", value)}
                 />
                 <TextArea
-                  label="Video prompt"
+                  label="影片提示詞"
                   value={row.videoPrompt ?? ""}
                   placeholder={videoPrompt}
                   onChange={(value) => onUpdate(row.id, "videoPrompt", value)}
@@ -365,17 +365,17 @@ export function StoryboardBuilder({
         <div className="rounded-lg border bg-secondary/30 p-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <h3 className="text-sm font-semibold">Full Storyboard Prompt Package</h3>
+              <h3 className="text-sm font-semibold">完整分鏡提示詞包</h3>
               <p className="text-xs text-muted-foreground">
-                Image and video prompts for every scene.
+                每個場景的圖像與影片提示詞。
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
               <Button
                 variant="outline"
-                onClick={() => copyText(storyboardPackage, "Full storyboard prompt copied.")}
+                onClick={() => copyText(storyboardPackage, "已複製完整分鏡提示詞。")}
               >
-                Copy Prompts
+                複製提示詞
               </Button>
               <Button
                 variant="outline"
@@ -387,7 +387,7 @@ export function StoryboardBuilder({
                   )
                 }
               >
-                Export Markdown
+                匯出 Markdown
               </Button>
               <Button
                 variant="outline"
@@ -399,7 +399,7 @@ export function StoryboardBuilder({
                   )
                 }
               >
-                Export JSON
+                匯出 JSON
               </Button>
             </div>
           </div>

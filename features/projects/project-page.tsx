@@ -146,7 +146,7 @@ export function ProjectPage() {
     persist(next);
     setActive(nextProject.id);
     resetForm();
-    setMessage("Project 已儲存。");
+    setMessage("專案已儲存。");
   }
 
   function editProject(project: CreatorProject) {
@@ -194,7 +194,7 @@ export function ProjectPage() {
           <p className="text-sm font-medium text-primary">專案工作室</p>
           <h2 className="mt-2 text-3xl font-semibold tracking-normal">創作專案中心</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-            管理專案中使用的腳本、分鏡、影片、Calendar 與 Publishing items。所有資料都保存在 localStorage。
+            管理專案中使用的腳本、分鏡、影片、行事曆與發布項目。所有資料都保存在本機。
           </p>
         </div>
 

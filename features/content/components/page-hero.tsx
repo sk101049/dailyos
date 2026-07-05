@@ -9,10 +9,10 @@ export function PageHero() {
           {messages.navigation.content}
         </p>
         <h2 className="mt-2 text-3xl font-semibold tracking-normal">
-          把保險想法整理成短影音內容
+          把創作想法整理成短影音內容
         </h2>
         <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-          在 AI 產生與後端儲存加入前，先用示範主題卡與腳本區塊規劃影片點子。
+          用分類、主題卡與腳本區塊規劃影片點子，資料保存在本機。
         </p>
       </div>
       <Badge variant="secondary" className="w-fit">

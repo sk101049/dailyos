@@ -14,7 +14,7 @@ import { ScriptWorkspace } from "./components/script-workspace";
 import { StoryboardBuilder } from "./components/storyboard-builder";
 import { ThumbnailPromptBuilder } from "./components/thumbnail-prompt-builder";
 import { TopicSelector } from "./components/topic-selector";
-import { initialFormValues, initialGeneratedScript } from "./constants";
+import { categoryDefaults, initialFormValues, initialGeneratedScript } from "./constants";
 import { useScriptLibrary } from "./hooks/use-script-library";
 import type {
   GeneratedScript,
@@ -298,10 +298,11 @@ export function ContentPage() {
 
   function handleFormChange(key: keyof ScriptGenerationForm, value: string) {
     setCopyMessage(null);
-    setFormValues((current) => ({
-      ...current,
-      [key]: value
-    }));
+    setFormValues((current) =>
+      key === "category"
+        ? { ...current, category: value, ...categoryDefaults[value] }
+        : { ...current, [key]: value }
+    );
   }
 
   function handleUpdatePreviewField(key: ScriptPreviewKey, value: string) {

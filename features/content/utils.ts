@@ -13,7 +13,8 @@ export function buildGptPrompt(formValues: ScriptGenerationForm) {
     "請你擔任保險內容策略顧問，協助我產生一支繁體中文短影音腳本。",
     "",
     "請根據以下設定撰寫內容：",
-    `- 保險主題：${formValues.topic}`,
+    `- 內容分類：${formValues.category}`,
+    `- 內容主題：${formValues.topic}`,
     `- 目標客群：${formValues.targetAudience}`,
     `- 影片長度：${formValues.videoLength}`,
     `- 語氣風格：${formValues.tone}`,
@@ -27,7 +28,7 @@ export function buildGptPrompt(formValues: ScriptGenerationForm) {
     "5. 標籤",
     "6. 封面文字",
     "",
-    "請讓內容適合保險專業人士日常使用，避免誇大承諾，語氣要可信、清楚、有同理心。"
+    "請讓內容適合創作者日常使用，避免誇大承諾，語氣要可信、清楚、有同理心。"
   ].join("\n");
 }
 

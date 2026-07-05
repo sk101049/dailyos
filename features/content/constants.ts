@@ -5,6 +5,32 @@ import type {
   ScriptPreviewKey
 } from "./types";
 
+export const contentCategories = [
+  "AI",
+  "財經",
+  "房地產",
+  "保險",
+  "健康",
+  "美食",
+  "科技",
+  "旅遊",
+  "親子",
+  "自訂"
+];
+
+export const categoryDefaults: Record<string, Pick<ScriptGenerationForm, "topic" | "targetAudience" | "tone">> = {
+  AI: { topic: "AI 工具實用教學", targetAudience: "上班族", tone: "專業" },
+  財經: { topic: "小資族現金流管理", targetAudience: "上班族", tone: "教育型" },
+  房地產: { topic: "首購族買房前準備", targetAudience: "年輕家庭", tone: "專業" },
+  保險: { topic: "醫療保障", targetAudience: "年輕家庭", tone: "溫暖" },
+  健康: { topic: "日常健康習慣", targetAudience: "上班族", tone: "溫暖" },
+  美食: { topic: "週末輕食推薦", targetAudience: "上班族", tone: "教育型" },
+  科技: { topic: "新科技生活應用", targetAudience: "企業主", tone: "專業" },
+  旅遊: { topic: "親子短程旅遊規劃", targetAudience: "年輕家庭", tone: "溫暖" },
+  親子: { topic: "家庭時間安排", targetAudience: "年輕家庭", tone: "溫暖" },
+  自訂: { topic: "自訂內容主題", targetAudience: "上班族", tone: "教育型" }
+};
+
 export const gptOutputHeadings: { key: ScriptPreviewKey; labels: string[] }[] = [
   { key: "title", labels: ["標題"] },
   { key: "hook", labels: ["開場吸引句"] },
@@ -70,9 +96,14 @@ export const workspaceSections = [
 
 export const generatorControls = [
   {
+    key: "category",
+    label: "內容分類",
+    options: contentCategories
+  },
+  {
     key: "topic",
-    label: "保險主題",
-    options: ["退休規劃", "醫療保障", "癌症保障", "失能保障", "長期照護", "家庭保障"]
+    label: "內容主題",
+    options: ["AI 工具實用教學", "小資族現金流管理", "首購族買房前準備", "醫療保障", "日常健康習慣", "自訂內容主題"]
   },
   {
     key: "targetAudience",
@@ -101,7 +132,8 @@ export const generatorControls = [
 }[];
 
 export const initialFormValues: ScriptGenerationForm = {
-  topic: "退休規劃",
+  category: "保險",
+  topic: "醫療保障",
   targetAudience: "年輕家庭",
   videoLength: "60 秒",
   tone: "教育型",
