@@ -116,6 +116,14 @@ type ProviderStatus = {
   configured: boolean;
 };
 
+type WeeklyPlanItem = {
+  id: string;
+  dateLabel: string;
+  title: string;
+  category: string;
+  status: string;
+};
+
 const SCRIPT_KEY = "dailyos-script-library";
 const CHARACTER_KEY = "dailyos-character-library";
 const VOICE_KEY = "dailyos-voice-library";
@@ -127,6 +135,7 @@ const ACTIVE_PROJECT_KEY = "dailyos-active-project-id";
 const CALENDAR_KEY = "dailyos-content-calendar";
 const PUBLISHING_KEY = "dailyos-publishing-center";
 const RENDERED_VIDEO_KEY = "dailyos-rendered-videos";
+const WEEKLY_PLAN_KEY = "dailyos-weekly-production-plan";
 
 const today = new Date().toISOString().slice(0, 10);
 
@@ -176,6 +185,7 @@ export function DashboardPage() {
   const [renderJobs, setRenderJobs] = useState<RenderJob[]>([]);
   const [renderedVideos, setRenderedVideos] = useState<RenderedVideo[]>([]);
   const [providerStatuses, setProviderStatuses] = useState<ProviderStatus[]>([]);
+  const [weeklyPlan, setWeeklyPlan] = useState<WeeklyPlanItem[]>([]);
   const [projectTitle, setProjectTitle] = useState("今日創作專案");
   const [scriptId, setScriptId] = useState("");
   const [characterId, setCharacterId] = useState("");
@@ -202,6 +212,7 @@ export function DashboardPage() {
     setPublishing(readArray<PublishingItem>(PUBLISHING_KEY, initialPublishing));
     setRenderJobs(readRenderQueue());
     setRenderedVideos(readArray<RenderedVideo>(RENDERED_VIDEO_KEY));
+    setWeeklyPlan(readArray<WeeklyPlanItem>(WEEKLY_PLAN_KEY));
     setActiveProject(project);
     setProjectTitle(project?.name ?? window.localStorage.getItem(PROJECT_KEY) ?? loadedPackages[0]?.title ?? "今日創作專案");
     setScriptId(project?.scriptIds[0] ?? loadedPackages[0]?.script?.id ?? loadedScripts[0]?.id ?? "");
@@ -259,6 +270,7 @@ export function DashboardPage() {
   const recentRenderJobs = renderJobs.slice(0, 5);
   const recentCompletedVideos = renderedVideos.slice(0, 5);
   const recentFailedRenders = renderJobs.filter((job) => job.status === "失敗").slice(0, 5);
+  const weeklyPlanPreview = weeklyPlan.slice(0, 5);
 
   async function loadProviderStatuses() {
     try {
@@ -455,6 +467,37 @@ export function DashboardPage() {
                 </div>
               </div>
             ) : null}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <CardTitle>本週創作計畫</CardTitle>
+                <CardDescription>AI Producer 建立的待審核內容。</CardDescription>
+              </div>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/workflow">開啟 Workflow</Link>
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {weeklyPlanPreview.length === 0 ? (
+              <p className="rounded-md border bg-background p-3 text-sm text-muted-foreground">
+                尚未建立本週創作計畫。
+              </p>
+            ) : (
+              weeklyPlanPreview.map((item) => (
+                <div key={item.id} className="flex flex-col gap-2 rounded-md border bg-background p-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="font-medium">{item.dateLabel}</p>
+                    <p className="text-muted-foreground">{item.title}</p>
+                  </div>
+                  <Badge variant="outline">{item.status}</Badge>
+                </div>
+              ))
+            )}
           </CardContent>
         </Card>
 

@@ -16,6 +16,7 @@ const navSections: Array<{ label?: string; items: NavItem[] }> = [
   {
     items: [
       { href: "/director", label: messages.navigation.director, marker: "AI" },
+      { href: "/workflow", label: messages.navigation.workflow, marker: "W" },
       { href: "/dashboard", label: messages.navigation.dashboard, marker: "D" },
       { href: "/projects", label: messages.navigation.projects, marker: "P" },
       { href: "/brand", label: messages.navigation.brandStudio, marker: "品" },

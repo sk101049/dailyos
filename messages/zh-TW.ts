@@ -7,6 +7,7 @@ export const messages = {
   navigation: {
     dashboard: "儀表板",
     director: "AI Director",
+    workflow: "Workflow Builder",
     projects: "專案",
     brandStudio: "品牌工作室",
     assetLibrary: "素材庫",
