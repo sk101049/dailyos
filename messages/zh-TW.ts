@@ -20,6 +20,7 @@ export const messages = {
     cover: "封面",
     videoStudio: "影片工作室",
     videoCenter: "製作中心",
+    renderQueue: "生成佇列",
     geminiRender: "Gemini Render",
     export: "匯出",
     operations: "營運中心",

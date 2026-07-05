@@ -10,6 +10,7 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
+import { readRenderQueue, renderProviders, writeRenderQueue, type RenderJob } from "@/lib/render-queue";
 
 type ScriptAsset = {
   id: string;
@@ -113,11 +114,17 @@ type GeminiRenderAttempt = {
   response: unknown;
 };
 
+type BrandAsset = {
+  id: string;
+  name: string;
+};
+
 const SCRIPT_KEY = "dailyos-script-library";
 const CHARACTER_KEY = "dailyos-character-library";
 const VOICE_KEY = "dailyos-voice-library";
 const STORYBOARD_KEY = "dailyos-storyboard-v2";
 const PACKAGE_KEY = "dailyos-video-packages";
+const BRAND_KEY = "dailyos-brand-library";
 const GEMINI_RENDER_ATTEMPT_KEY = "dailyos-gemini-render-attempt";
 const GEMINI_URL = "https://gemini.google.com";
 const AI_STUDIO_URL = "https://aistudio.google.com";
@@ -298,6 +305,7 @@ export function VideoPage() {
   });
   const [message, setMessage] = useState<string | null>(null);
   const [packages, setPackages] = useState<ProductionPackage[]>([]);
+  const [brands, setBrands] = useState<BrandAsset[]>([]);
   const [providerStatuses, setProviderStatuses] = useState<ProviderStatus[]>([]);
   const [geminiVideoApi, setGeminiVideoApi] = useState<GeminiVideoApiStatus | null>(null);
   const [geminiRenderAttempt, setGeminiRenderAttempt] = useState<GeminiRenderAttempt | null>(null);
@@ -309,12 +317,14 @@ export function VideoPage() {
     const loadedVoices = readArray<VoiceAsset>(VOICE_KEY);
     const loadedStoryboard = readArray<StoryboardScene>(STORYBOARD_KEY);
     const loadedPackages = readArray<ProductionPackage>(PACKAGE_KEY);
+    const loadedBrands = readArray<BrandAsset>(BRAND_KEY);
 
     setScripts(loadedScripts);
     setCharacters(loadedCharacters);
     setVoices(loadedVoices);
     setStoryboard(loadedStoryboard);
     setPackages(loadedPackages);
+    setBrands(loadedBrands);
     setScriptId(loadedScripts[0]?.id ?? "");
     setCharacterId(loadedCharacters[0]?.id ?? "");
     setVoiceId(loadedVoices[0]?.id ?? "");
@@ -380,6 +390,42 @@ export function VideoPage() {
     setPackages(next);
     window.localStorage.setItem(PACKAGE_KEY, JSON.stringify(next));
     setMessage("Production package assembled and saved locally.");
+  }
+
+  function createRenderJob() {
+    const now = new Date().toISOString();
+    const job: RenderJob = {
+      id: crypto.randomUUID(),
+      project: productionPackage.title,
+      title: productionPackage.script?.title ?? productionPackage.title,
+      provider,
+      createdAt: now,
+      updatedAt: now,
+      status: "等待中",
+      prompt: provider === "Gemini" ? geminiPackage : renderCommandMarkdown(productionPackage),
+      productionPackage,
+      character: productionPackage.character,
+      brand: brands[0] ?? null,
+      voice: productionPackage.voice,
+      request: {
+        provider,
+        aspectRatio: geminiSettings.aspectRatio,
+        targetDuration: geminiSettings.targetDuration,
+        renderTarget: productionPackage.config.renderTarget
+      },
+      response: null,
+      error: "",
+      statusHistory: [
+        {
+          status: "等待中",
+          at: now,
+          note: "已從影片工作室建立生成工作。"
+        }
+      ]
+    };
+
+    writeRenderQueue([job, ...readRenderQueue()]);
+    setMessage("已建立生成工作，請到生成佇列查看。");
   }
 
   async function copyGeminiPrompt() {
@@ -558,6 +604,7 @@ export function VideoPage() {
             </div>
             <div className="flex flex-wrap gap-2">
               <Button onClick={savePackage}>產生製作包</Button>
+              <Button onClick={createRenderJob}>開始生成影片</Button>
               <Button
                 variant="outline"
                 onClick={() =>
@@ -644,10 +691,7 @@ export function VideoPage() {
                 label="影片 provider"
                 value={provider}
                 placeholder="選擇 provider"
-                options={[
-                  { label: "Gemini", value: "Gemini" },
-                  { label: "OpenMontage", value: "OpenMontage" }
-                ]}
+                options={renderProviders.map((item) => ({ label: item, value: item }))}
                 onChange={setProvider}
               />
               <SelectField

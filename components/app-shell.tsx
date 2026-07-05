@@ -37,6 +37,7 @@ const navSections: Array<{ label?: string; items: NavItem[] }> = [
     label: messages.navigation.videoStudio,
     items: [
       { href: "/video", label: messages.navigation.videoCenter, marker: "V" },
+      { href: "/render-queue", label: messages.navigation.renderQueue, marker: "Q" },
       { href: "/video#gemini-render", label: messages.navigation.geminiRender, marker: "G" },
       { href: "/video#export", label: messages.navigation.export, marker: "出" }
     ]

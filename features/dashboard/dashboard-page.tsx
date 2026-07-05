@@ -11,6 +11,7 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
+import { readRenderQueue, type RenderJob } from "@/lib/render-queue";
 
 type ScriptAsset = {
   id: string;
@@ -155,6 +156,7 @@ export function DashboardPage() {
   const [tasks, setTasks] = useState<ContentTask[]>(initialTasks);
   const [publishing, setPublishing] = useState<PublishingItem[]>(initialPublishing);
   const [activeProject, setActiveProject] = useState<CreatorProject | null>(null);
+  const [renderJobs, setRenderJobs] = useState<RenderJob[]>([]);
   const [projectTitle, setProjectTitle] = useState("今日創作專案");
   const [scriptId, setScriptId] = useState("");
   const [characterId, setCharacterId] = useState("");
@@ -179,6 +181,7 @@ export function DashboardPage() {
     setPackages(loadedPackages);
     setTasks(readArray<ContentTask>(CALENDAR_KEY, initialTasks));
     setPublishing(readArray<PublishingItem>(PUBLISHING_KEY, initialPublishing));
+    setRenderJobs(readRenderQueue());
     setActiveProject(project);
     setProjectTitle(project?.name ?? window.localStorage.getItem(PROJECT_KEY) ?? loadedPackages[0]?.title ?? "今日創作專案");
     setScriptId(project?.scriptIds[0] ?? loadedPackages[0]?.script?.id ?? loadedScripts[0]?.id ?? "");
@@ -232,6 +235,7 @@ export function DashboardPage() {
   const todayTasks = tasks.filter((task) => task.publishDate === today);
   const activePublishing = publishing.filter((item) => item.status !== "已發布").slice(0, 4);
   const recentVideos = packages.slice(0, 3);
+  const recentRenderJobs = renderJobs.slice(0, 5);
 
   function savePackage() {
     const next = [productionPackage, ...packages];
@@ -396,6 +400,35 @@ export function DashboardPage() {
         </Card>
 
         <div className="grid gap-4 md:grid-cols-2">
+          <Card>
+            <CardHeader>
+              <CardTitle>今天生成工作</CardTitle>
+              <CardDescription>最近五筆生成佇列</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {recentRenderJobs.length === 0 ? (
+                <p className="rounded-md border bg-background p-3 text-sm text-muted-foreground">
+                  尚未建立生成工作。
+                </p>
+              ) : (
+                recentRenderJobs.map((job) => (
+                  <div key={job.id} className="rounded-md border bg-background p-3 text-sm">
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="font-medium">{job.title}</p>
+                      <Badge variant="outline">{job.status}</Badge>
+                    </div>
+                    <p className="mt-1 text-muted-foreground">
+                      {job.provider} · {job.updatedAt}
+                    </p>
+                  </div>
+                ))
+              )}
+              <Button asChild variant="outline" size="sm">
+                <Link href="/render-queue">開啟生成佇列</Link>
+              </Button>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader>
               <CardTitle>今日行事曆任務</CardTitle>
