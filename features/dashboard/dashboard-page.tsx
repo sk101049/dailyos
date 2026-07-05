@@ -254,7 +254,7 @@ export function DashboardPage() {
             </p>
           </div>
           <Button asChild>
-            <Link href="/content#script">開始今天的影片</Link>
+            <Link href="/director">開始今天的影片</Link>
           </Button>
         </div>
 

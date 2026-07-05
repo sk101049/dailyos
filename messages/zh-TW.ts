@@ -6,6 +6,7 @@ export const messages = {
   },
   navigation: {
     dashboard: "儀表板",
+    director: "AI Director",
     projects: "專案",
     content: "內容工作室",
     contentStudio: "內容工作室",
