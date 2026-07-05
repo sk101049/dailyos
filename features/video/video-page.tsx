@@ -91,11 +91,34 @@ type ProviderStatus = {
   };
 };
 
+type GeminiVideoApiStatus = {
+  enabled: boolean;
+  configured: boolean;
+  model: string;
+  envVars: string[];
+};
+
+type GeminiRenderAttempt = {
+  id: string;
+  createdAt: string;
+  provider: "Gemini";
+  request: {
+    aspectRatio: string;
+    durationSeconds: string;
+    resolution: string;
+  };
+  ok: boolean;
+  status: string;
+  message: string;
+  response: unknown;
+};
+
 const SCRIPT_KEY = "dailyos-script-library";
 const CHARACTER_KEY = "dailyos-character-library";
 const VOICE_KEY = "dailyos-voice-library";
 const STORYBOARD_KEY = "dailyos-storyboard-v2";
 const PACKAGE_KEY = "dailyos-video-packages";
+const GEMINI_RENDER_ATTEMPT_KEY = "dailyos-gemini-render-attempt";
 const GEMINI_URL = "https://gemini.google.com";
 const AI_STUDIO_URL = "https://aistudio.google.com";
 
@@ -276,6 +299,9 @@ export function VideoPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [packages, setPackages] = useState<ProductionPackage[]>([]);
   const [providerStatuses, setProviderStatuses] = useState<ProviderStatus[]>([]);
+  const [geminiVideoApi, setGeminiVideoApi] = useState<GeminiVideoApiStatus | null>(null);
+  const [geminiRenderAttempt, setGeminiRenderAttempt] = useState<GeminiRenderAttempt | null>(null);
+  const [isSubmittingGemini, setIsSubmittingGemini] = useState(false);
 
   useEffect(() => {
     const loadedScripts = readArray<ScriptAsset>(SCRIPT_KEY);
@@ -292,10 +318,19 @@ export function VideoPage() {
     setScriptId(loadedScripts[0]?.id ?? "");
     setCharacterId(loadedCharacters[0]?.id ?? "");
     setVoiceId(loadedVoices[0]?.id ?? "");
+    const savedAttempt = window.localStorage.getItem(GEMINI_RENDER_ATTEMPT_KEY);
+    if (savedAttempt) {
+      try {
+        setGeminiRenderAttempt(JSON.parse(savedAttempt) as GeminiRenderAttempt);
+      } catch {
+        window.localStorage.removeItem(GEMINI_RENDER_ATTEMPT_KEY);
+      }
+    }
   }, []);
 
   useEffect(() => {
     void loadProviderStatuses();
+    void loadGeminiVideoApiStatus();
   }, []);
 
   const productionPackage = useMemo<ProductionPackage>(() => {
@@ -368,6 +403,80 @@ export function VideoPage() {
       setProviderStatuses(Array.isArray(payload.providers) ? payload.providers : []);
     } catch {
       setProviderStatuses([]);
+    }
+  }
+
+  async function loadGeminiVideoApiStatus() {
+    try {
+      const response = await fetch("/api/video-providers/gemini");
+      const payload = (await response.json()) as { videoApi?: GeminiVideoApiStatus };
+      setGeminiVideoApi(payload.videoApi ?? null);
+    } catch {
+      setGeminiVideoApi(null);
+    }
+  }
+
+  async function submitGeminiRender() {
+    setIsSubmittingGemini(true);
+
+    try {
+      const response = await fetch("/api/video-providers/gemini", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          geminiPromptPackage: geminiPackage,
+          productionPackage,
+          aspectRatio: geminiSettings.aspectRatio === "16:9" ? "16:9" : "9:16",
+          durationSeconds: "8",
+          resolution: "720p"
+        })
+      });
+      const payload = await response.json().catch(() => null);
+      const attempt: GeminiRenderAttempt = {
+        id: crypto.randomUUID(),
+        createdAt: new Date().toISOString(),
+        provider: "Gemini",
+        request: {
+          aspectRatio: geminiSettings.aspectRatio === "16:9" ? "16:9" : "9:16",
+          durationSeconds: "8",
+          resolution: "720p"
+        },
+        ok: response.ok,
+        status: typeof payload?.status === "string" ? payload.status : response.ok ? "submitted" : "unknown_error",
+        message:
+          typeof payload?.message === "string"
+            ? payload.message
+            : response.ok
+              ? "Gemini test generation submitted."
+              : `Gemini test generation failed with HTTP ${response.status}.`,
+        response: payload
+      };
+
+      setGeminiRenderAttempt(attempt);
+      window.localStorage.setItem(GEMINI_RENDER_ATTEMPT_KEY, JSON.stringify(attempt));
+      setMessage(attempt.ok ? "Gemini 測試生成已送出。" : `Gemini 測試生成未送出：${attempt.message}`);
+      void loadGeminiVideoApiStatus();
+    } catch (error) {
+      const attempt: GeminiRenderAttempt = {
+        id: crypto.randomUUID(),
+        createdAt: new Date().toISOString(),
+        provider: "Gemini",
+        request: {
+          aspectRatio: geminiSettings.aspectRatio === "16:9" ? "16:9" : "9:16",
+          durationSeconds: "8",
+          resolution: "720p"
+        },
+        ok: false,
+        status: "network_error",
+        message: error instanceof Error ? error.message : "Unknown network error.",
+        response: null
+      };
+
+      setGeminiRenderAttempt(attempt);
+      window.localStorage.setItem(GEMINI_RENDER_ATTEMPT_KEY, JSON.stringify(attempt));
+      setMessage(`Gemini 測試生成未送出：${attempt.message}`);
+    } finally {
+      setIsSubmittingGemini(false);
     }
   }
 
@@ -612,6 +721,67 @@ export function VideoPage() {
             <pre className="max-h-[520px] overflow-auto whitespace-pre-wrap break-words rounded-md bg-secondary/40 p-3 text-sm leading-6 text-muted-foreground">
               {geminiPackage}
             </pre>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <CardTitle>Gemini Render Test</CardTitle>
+                <CardDescription>
+                  使用 server-side Gemini provider spike 送出目前 prompt package。API key 不會暴露到前端。
+                </CardDescription>
+              </div>
+              <Badge variant="outline">Feature flag</Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-3 md:grid-cols-3">
+              <SummaryRow
+                label="API key"
+                value={geminiVideoApi?.configured ? "已設定" : "未設定"}
+              />
+              <SummaryRow
+                label="Feature flag"
+                value={geminiVideoApi?.enabled ? "已啟用" : "未啟用"}
+              />
+              <SummaryRow label="Manual workflow" value="可用" />
+            </div>
+            {geminiVideoApi?.configured && geminiVideoApi.enabled ? null : (
+              <p className="rounded-md border bg-secondary/30 p-3 text-sm text-muted-foreground">
+                Blocker: {geminiVideoApi?.configured ? "" : "缺少 server-side Gemini API key。"}
+                {geminiVideoApi?.enabled ? "" : " GEMINI_VIDEO_API_ENABLED 尚未設為 true。"}
+                手動 Gemini workflow 仍可使用。
+              </p>
+            )}
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={submitGeminiRender} disabled={isSubmittingGemini || provider !== "Gemini"}>
+                {isSubmittingGemini ? "送出中..." : "送出 Gemini 測試生成"}
+              </Button>
+              <Button variant="outline" onClick={loadGeminiVideoApiStatus}>
+                重新檢查 Gemini API
+              </Button>
+            </div>
+            {geminiRenderAttempt ? (
+              <div className="space-y-3">
+                <div className="grid gap-3 md:grid-cols-3">
+                  <SummaryRow label="Last status" value={geminiRenderAttempt.status} />
+                  <SummaryRow label="Result" value={geminiRenderAttempt.ok ? "success" : "blocked/error"} />
+                  <SummaryRow label="Created" value={geminiRenderAttempt.createdAt} />
+                </div>
+                <p className="rounded-md border bg-background p-3 text-sm text-muted-foreground">
+                  {geminiRenderAttempt.message}
+                </p>
+                <pre className="max-h-80 overflow-auto whitespace-pre-wrap break-words rounded-md bg-secondary/40 p-3 text-xs leading-5 text-muted-foreground">
+                  {JSON.stringify(geminiRenderAttempt.response, null, 2)}
+                </pre>
+              </div>
+            ) : (
+              <p className="rounded-md border bg-background p-3 text-sm text-muted-foreground">
+                尚未送出 Gemini render attempt。
+              </p>
+            )}
           </CardContent>
         </Card>
 
