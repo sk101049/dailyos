@@ -40,6 +40,19 @@ export type GeminiVeoVideoResult =
       details?: unknown;
     };
 
+export type GeminiOperationResult =
+  | {
+      ok: true;
+      status: "running" | "done";
+      operation: unknown;
+    }
+  | {
+      ok: false;
+      status: "not_configured" | "invalid_request" | "api_error";
+      message: string;
+      details?: unknown;
+    };
+
 export function getGeminiVideoApiStatus() {
   return {
     enabled: isVideoApiEnabled(),
@@ -112,6 +125,45 @@ export async function startGeminiVeoVideo(input: GeminiVeoVideoInput): Promise<G
     status: "submitted",
     model,
     operationName: typeof payload?.name === "string" ? payload.name : "",
+    operation: payload
+  };
+}
+
+export async function getGeminiOperation(operationName: string): Promise<GeminiOperationResult> {
+  const apiKey = getGeminiKey();
+  if (!apiKey) {
+    return {
+      ok: false,
+      status: "not_configured",
+      message: "Missing GEMINI_API_KEY, GOOGLE_AI_API_KEY, or GOOGLE_API_KEY on the server."
+    };
+  }
+
+  if (!operationName.trim()) {
+    return {
+      ok: false,
+      status: "invalid_request",
+      message: "Provider job ID is required."
+    };
+  }
+
+  const response = await fetch(`${baseUrl}/${operationName}`, {
+    headers: { "x-goog-api-key": apiKey }
+  });
+  const payload = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    return {
+      ok: false,
+      status: "api_error",
+      message: `Gemini operation status request failed with HTTP ${response.status}.`,
+      details: payload
+    };
+  }
+
+  return {
+    ok: true,
+    status: payload?.done ? "done" : "running",
     operation: payload
   };
 }

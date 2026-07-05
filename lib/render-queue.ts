@@ -22,6 +22,8 @@ export type RenderJob = {
   createdAt: string;
   updatedAt: string;
   status: RenderStatus;
+  providerJobId?: string;
+  lastSyncedAt?: string;
   prompt: string;
   productionPackage: unknown;
   character: unknown;

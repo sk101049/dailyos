@@ -12,6 +12,13 @@ import {
 } from "@/components/ui/card";
 
 type Asset = { id: string; title?: string; name?: string; prompt?: string; coverText?: string; script?: string };
+type Project = { id: string; name: string; videoIds?: string[] };
+type RenderedVideo = Asset & {
+  fileName: string;
+  projectId: string;
+  projectName: string;
+  importedAt: string;
+};
 
 type AssetGroup = {
   label: string;
@@ -20,6 +27,9 @@ type AssetGroup = {
 };
 
 const FAVORITES_KEY = "dailyos-asset-favorites";
+const RENDERED_VIDEO_KEY = "dailyos-rendered-videos";
+const PROJECTS_KEY = "dailyos-projects";
+const ACTIVE_PROJECT_KEY = "dailyos-active-project-id";
 
 function readArray<T>(key: string): T[] {
   try {
@@ -40,9 +50,13 @@ export function AssetPage() {
   const [filter, setFilter] = useState("全部");
   const [favorites, setFavorites] = useState<string[]>([]);
   const [groups, setGroups] = useState<AssetGroup[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [activeProjectId, setActiveProjectId] = useState("");
+  const [videoTitle, setVideoTitle] = useState("");
+  const [videoFileName, setVideoFileName] = useState("");
+  const [message, setMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    setFavorites(readArray<string>(FAVORITES_KEY));
+  function loadAssets() {
     setGroups([
       { label: "人物模板", icon: "👤", items: readArray<Asset>("dailyos-character-library").map((item) => ({ ...item, kind: "人物模板" })) },
       { label: "配音", icon: "🎙️", items: readArray<Asset>("dailyos-voice-library").map((item) => ({ ...item, kind: "配音" })) },
@@ -52,6 +66,14 @@ export function AssetPage() {
       { label: "Prompt", icon: "📝", items: readArray<Asset>("dailyos-script-library").map((item) => ({ ...item, title: item.title ?? "腳本 Prompt", kind: "Prompt" })) },
       { label: "Production Package", icon: "📦", items: readArray<Asset>("dailyos-video-packages").map((item) => ({ ...item, kind: "Production Package" })) }
     ]);
+  }
+
+  useEffect(() => {
+    const loadedProjects = readArray<Project>(PROJECTS_KEY);
+    setFavorites(readArray<string>(FAVORITES_KEY));
+    setProjects(loadedProjects);
+    setActiveProjectId(window.localStorage.getItem(ACTIVE_PROJECT_KEY) ?? loadedProjects[0]?.id ?? "");
+    loadAssets();
   }, []);
 
   const filteredGroups = useMemo(
@@ -75,6 +97,39 @@ export function AssetPage() {
     window.localStorage.setItem(FAVORITES_KEY, JSON.stringify(next));
   }
 
+  function importMp4() {
+    if (!videoFileName) {
+      setMessage("請先選擇 MP4 檔案。");
+      return;
+    }
+
+    const project = projects.find((item) => item.id === activeProjectId);
+    const now = new Date().toISOString();
+    const video: RenderedVideo = {
+      id: crypto.randomUUID(),
+      title: videoTitle.trim() || videoFileName.replace(/\.mp4$/i, ""),
+      name: videoTitle.trim() || videoFileName,
+      fileName: videoFileName,
+      projectId: project?.id ?? "",
+      projectName: project?.name ?? "未指定專案",
+      importedAt: now
+    };
+    const videos = [video, ...readArray<RenderedVideo>(RENDERED_VIDEO_KEY)];
+    const nextProjects = projects.map((item) =>
+      item.id === project?.id
+        ? { ...item, videoIds: [...(item.videoIds ?? []), video.id] }
+        : item
+    );
+
+    window.localStorage.setItem(RENDERED_VIDEO_KEY, JSON.stringify(videos));
+    window.localStorage.setItem(PROJECTS_KEY, JSON.stringify(nextProjects));
+    setProjects(nextProjects);
+    setVideoTitle("");
+    setVideoFileName("");
+    setMessage(`已匯入「${video.title}」並關聯到${video.projectName}。`);
+    loadAssets();
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
@@ -87,6 +142,37 @@ export function AssetPage() {
         </div>
         <Badge variant="secondary" className="w-fit">僅本機儲存</Badge>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>匯入已下載 MP4</CardTitle>
+          <CardDescription>只保存本機檔名與專案關聯，不上傳影片。</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {message ? <p className="rounded-md border bg-background px-3 py-2 text-sm text-muted-foreground md:col-span-2 xl:col-span-4">{message}</p> : null}
+          <input
+            className="h-10 rounded-md border bg-background px-3 py-2 text-sm"
+            type="file"
+            accept="video/mp4"
+            onChange={(event) => setVideoFileName(event.target.files?.[0]?.name ?? "")}
+          />
+          <input
+            className="h-10 rounded-md border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            value={videoTitle}
+            onChange={(event) => setVideoTitle(event.target.value)}
+            placeholder="影片標題"
+          />
+          <select
+            className="h-10 rounded-md border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            value={activeProjectId}
+            onChange={(event) => setActiveProjectId(event.target.value)}
+          >
+            <option value="">不關聯專案</option>
+            {projects.map((project) => <option key={project.id} value={project.id}>{project.name}</option>)}
+          </select>
+          <Button onClick={importMp4}>匯入影片素材</Button>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardContent className="grid gap-3 pt-5 md:grid-cols-[minmax(0,1fr)_220px]">

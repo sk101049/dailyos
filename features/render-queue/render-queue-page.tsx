@@ -54,7 +54,7 @@ export function RenderQueuePage() {
     }
 
     setIsWorking(true);
-    setWorkerMessage("Gemini Worker 已開始處理。");
+    setWorkerMessage("Gemini 工作者已開始處理。");
     const startedAt = new Date().toISOString();
     const workingJob = updateJob(jobId, (job) => ({
       ...job,
@@ -62,7 +62,7 @@ export function RenderQueuePage() {
       updatedAt: startedAt,
       statusHistory: [
         ...job.statusHistory,
-        { status: "準備中", at: startedAt, note: "Gemini Worker 已讀取工作。" },
+        { status: "準備中", at: startedAt, note: "Gemini 工作者已讀取工作。" },
         { status: "生成中", at: startedAt, note: "已送出 Gemini 生成請求。" }
       ]
     }));
@@ -81,23 +81,26 @@ export function RenderQueuePage() {
       const payload = await response.json().catch(() => null);
       const doneAt = new Date().toISOString();
       const ok = response.ok && payload?.ok !== false;
+      const providerJobId = typeof payload?.operationName === "string" ? payload.operationName : "";
 
       updateJob(jobId, (job) => ({
         ...job,
-        status: ok ? "已完成" : "失敗",
+        status: ok ? "生成中" : "失敗",
         updatedAt: doneAt,
+        providerJobId: providerJobId || job.providerJobId,
+        lastSyncedAt: doneAt,
         response: payload,
         error: ok ? "" : payload?.message ?? `Gemini API 回傳 HTTP ${response.status}`,
         statusHistory: [
           ...job.statusHistory,
           {
-            status: ok ? "已完成" : "失敗",
+            status: ok ? "生成中" : "失敗",
             at: doneAt,
-            note: ok ? "Gemini 已接受生成工作。" : "Gemini 生成請求失敗。"
+            note: ok ? "Gemini 已接受生成工作，等待手動更新狀態。" : "Gemini 生成請求失敗。"
           }
         ]
       }));
-      setWorkerMessage(ok ? "Gemini Worker 已完成送出。" : "Gemini Worker 執行失敗，詳情已寫入 Job。");
+      setWorkerMessage(ok ? "Gemini 工作者已送出生成，服務商工作 ID 已儲存。" : "Gemini 工作者執行失敗，詳情已寫入工作。");
     } catch (error) {
       const failedAt = new Date().toISOString();
       updateJob(jobId, (job) => ({
@@ -108,10 +111,61 @@ export function RenderQueuePage() {
         error: error instanceof Error ? error.message : "未知錯誤",
         statusHistory: [
           ...job.statusHistory,
-          { status: "失敗", at: failedAt, note: "Gemini Worker 發生網路或執行錯誤。" }
+          { status: "失敗", at: failedAt, note: "Gemini 工作者發生網路或執行錯誤。" }
         ]
       }));
-      setWorkerMessage("Gemini Worker 執行失敗，詳情已寫入 Job。");
+      setWorkerMessage("Gemini 工作者執行失敗，詳情已寫入工作。");
+    } finally {
+      setIsWorking(false);
+    }
+  }
+
+  async function syncGeminiStatus(jobId: string) {
+    const job = jobs.find((item) => item.id === jobId);
+    if (!job?.providerJobId) {
+      setWorkerMessage("這筆工作尚未有 Provider Job ID，請先送出生成。");
+      return;
+    }
+
+    setIsWorking(true);
+    try {
+      const response = await fetch(`/api/video-providers/gemini?operationName=${encodeURIComponent(job.providerJobId)}`);
+      const payload = await response.json().catch(() => null);
+      const syncedAt = new Date().toISOString();
+      const ok = response.ok && payload?.ok !== false;
+      const done = payload?.status === "done";
+
+      updateJob(jobId, (current) => ({
+        ...current,
+        status: ok ? done ? "已完成" : "生成中" : "失敗",
+        updatedAt: syncedAt,
+        lastSyncedAt: syncedAt,
+        response: payload,
+        error: ok ? "" : payload?.message ?? `Gemini 狀態同步 HTTP ${response.status}`,
+        statusHistory: [
+          ...current.statusHistory,
+          {
+            status: ok ? done ? "已完成" : "生成中" : "失敗",
+            at: syncedAt,
+            note: ok ? "已手動同步 Gemini 狀態。" : "Gemini 狀態同步失敗。"
+          }
+        ]
+      }));
+      setWorkerMessage(ok ? "Gemini 狀態已更新。" : "Gemini 狀態更新失敗。");
+    } catch (error) {
+      const failedAt = new Date().toISOString();
+      updateJob(jobId, (current) => ({
+        ...current,
+        status: "失敗",
+        updatedAt: failedAt,
+        lastSyncedAt: failedAt,
+        error: error instanceof Error ? error.message : "未知錯誤",
+        statusHistory: [
+          ...current.statusHistory,
+          { status: "失敗", at: failedAt, note: "手動同步 Gemini 狀態時發生錯誤。" }
+        ]
+      }));
+      setWorkerMessage("Gemini 狀態更新失敗。");
     } finally {
       setIsWorking(false);
     }
@@ -124,7 +178,7 @@ export function RenderQueuePage() {
           <p className="text-sm font-medium text-primary">生成佇列</p>
           <h2 className="mt-2 text-3xl font-semibold tracking-normal">生成佇列</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-            管理所有 AI 影片生成工作。Gemini Worker 需手動執行，不啟動背景服務。
+            管理所有 AI 影片生成工作。Gemini 工作者需手動執行，不啟動背景服務。
           </p>
         </div>
         <Button onClick={() => runGeminiWorker()} disabled={isWorking || !nextGeminiJob}>
@@ -166,13 +220,20 @@ export function RenderQueuePage() {
                         <Info label="服務商" value={job.provider} />
                         <Info label="建立時間" value={job.createdAt} />
                         <Info label="最後更新" value={job.updatedAt} />
+                        <Info label="服務商工作 ID" value={job.providerJobId ?? "尚未送出"} />
+                        <Info label="最後同步" value={job.lastSyncedAt ?? "尚未同步"} />
                       </div>
                       <div className="flex items-center gap-2 text-sm">
                         <span className="text-muted-foreground">狀態</span>
                         <Badge>{job.status}</Badge>
                         {job.provider === "Gemini" && ["等待中", "準備中"].includes(job.status) ? (
                           <Button size="sm" variant="outline" onClick={() => runGeminiWorker(job.id)} disabled={isWorking}>
-                            執行
+                            送出生成
+                          </Button>
+                        ) : null}
+                        {job.provider === "Gemini" && job.providerJobId ? (
+                          <Button size="sm" variant="outline" onClick={() => syncGeminiStatus(job.id)} disabled={isWorking}>
+                            更新狀態
                           </Button>
                         ) : null}
                       </div>

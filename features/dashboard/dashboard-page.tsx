@@ -67,6 +67,15 @@ type PublishingItem = {
   scheduledDate: string;
 };
 
+type RenderedVideo = {
+  id: string;
+  title?: string;
+  name?: string;
+  fileName: string;
+  projectName: string;
+  importedAt: string;
+};
+
 type ProductionPackage = {
   id: string;
   title: string;
@@ -110,6 +119,7 @@ const PROJECTS_KEY = "dailyos-projects";
 const ACTIVE_PROJECT_KEY = "dailyos-active-project-id";
 const CALENDAR_KEY = "dailyos-content-calendar";
 const PUBLISHING_KEY = "dailyos-publishing-center";
+const RENDERED_VIDEO_KEY = "dailyos-rendered-videos";
 
 const today = new Date().toISOString().slice(0, 10);
 
@@ -157,6 +167,7 @@ export function DashboardPage() {
   const [publishing, setPublishing] = useState<PublishingItem[]>(initialPublishing);
   const [activeProject, setActiveProject] = useState<CreatorProject | null>(null);
   const [renderJobs, setRenderJobs] = useState<RenderJob[]>([]);
+  const [renderedVideos, setRenderedVideos] = useState<RenderedVideo[]>([]);
   const [projectTitle, setProjectTitle] = useState("今日創作專案");
   const [scriptId, setScriptId] = useState("");
   const [characterId, setCharacterId] = useState("");
@@ -182,6 +193,7 @@ export function DashboardPage() {
     setTasks(readArray<ContentTask>(CALENDAR_KEY, initialTasks));
     setPublishing(readArray<PublishingItem>(PUBLISHING_KEY, initialPublishing));
     setRenderJobs(readRenderQueue());
+    setRenderedVideos(readArray<RenderedVideo>(RENDERED_VIDEO_KEY));
     setActiveProject(project);
     setProjectTitle(project?.name ?? window.localStorage.getItem(PROJECT_KEY) ?? loadedPackages[0]?.title ?? "今日創作專案");
     setScriptId(project?.scriptIds[0] ?? loadedPackages[0]?.script?.id ?? loadedScripts[0]?.id ?? "");
@@ -236,6 +248,8 @@ export function DashboardPage() {
   const activePublishing = publishing.filter((item) => item.status !== "已發布").slice(0, 4);
   const recentVideos = packages.slice(0, 3);
   const recentRenderJobs = renderJobs.slice(0, 5);
+  const recentCompletedVideos = renderedVideos.slice(0, 5);
+  const recentFailedRenders = renderJobs.filter((job) => job.status === "失敗").slice(0, 5);
 
   function savePackage() {
     const next = [productionPackage, ...packages];
@@ -295,18 +309,21 @@ export function DashboardPage() {
           <Card>
             <CardHeader>
               <CardTitle>最近影片</CardTitle>
-              <CardDescription>最近建立的製作包</CardDescription>
+              <CardDescription>最近匯入的完成影片</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
-              {recentVideos.length === 0 ? (
-                <p className="text-sm text-muted-foreground">尚未建立影片製作包。</p>
+              {recentCompletedVideos.length === 0 ? (
+                <p className="text-sm text-muted-foreground">尚未匯入完成影片。</p>
               ) : (
-                recentVideos.map((item) => (
-                  <p key={item.id} className="truncate text-sm font-medium">{item.title}</p>
+                recentCompletedVideos.map((item) => (
+                  <div key={item.id} className="text-sm">
+                    <p className="truncate font-medium">{item.title ?? item.name ?? item.fileName}</p>
+                    <p className="truncate text-muted-foreground">{item.projectName}</p>
+                  </div>
                 ))
               )}
               <Button asChild variant="outline" size="sm">
-                <Link href="/video#export">前往影片工作室</Link>
+                <Link href="/assets">開啟素材庫</Link>
               </Button>
             </CardContent>
           </Card>
@@ -471,6 +488,33 @@ export function DashboardPage() {
               ))}
               <Button asChild variant="outline" size="sm">
                 <Link href="/publishing">開啟發布中心</Link>
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>最近失敗生成</CardTitle>
+              <CardDescription>需要手動檢查的生成工作</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {recentFailedRenders.length === 0 ? (
+                <p className="rounded-md border bg-background p-3 text-sm text-muted-foreground">
+                  目前沒有失敗的生成工作。
+                </p>
+              ) : (
+                recentFailedRenders.map((job) => (
+                  <div key={job.id} className="rounded-md border bg-background p-3 text-sm">
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="font-medium">{job.title}</p>
+                      <Badge variant="outline">{job.provider}</Badge>
+                    </div>
+                    <p className="mt-1 line-clamp-2 text-muted-foreground">{job.error || "未知錯誤"}</p>
+                  </div>
+                ))
+              )}
+              <Button asChild variant="outline" size="sm">
+                <Link href="/render-queue">查看生成佇列</Link>
               </Button>
             </CardContent>
           </Card>

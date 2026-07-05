@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -21,9 +22,19 @@ type PublishingItem = {
   scheduledDate: string;
   note: string;
   sourceCalendarTaskId?: string;
+  sourceVideoId?: string;
+};
+
+type RenderedVideo = {
+  id: string;
+  title?: string;
+  name?: string;
+  fileName: string;
+  projectName: string;
 };
 
 const STORAGE_KEY = "dailyos-publishing-center";
+const RENDERED_VIDEO_KEY = "dailyos-rendered-videos";
 
 const publishingStatuses: PublishingStatus[] = [
   "待製作",
@@ -69,24 +80,35 @@ const initialItems: PublishingItem[] = [
 
 export function PublishingPage() {
   const [items, setItems] = useState<PublishingItem[]>(initialItems);
+  const [videos, setVideos] = useState<RenderedVideo[]>([]);
   const [hasLoadedItems, setHasLoadedItems] = useState(false);
 
   useEffect(() => {
     const saved = window.localStorage.getItem(STORAGE_KEY);
-    if (!saved) {
+
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved) as PublishingItem[];
+        if (Array.isArray(parsed)) {
+          setItems(parsed);
+        }
+      } catch {
+        window.localStorage.removeItem(STORAGE_KEY);
+      } finally {
+        setHasLoadedItems(true);
+      }
+    } else {
       setHasLoadedItems(true);
-      return;
     }
 
-    try {
-      const parsed = JSON.parse(saved) as PublishingItem[];
-      if (Array.isArray(parsed)) {
-        setItems(parsed);
+    const savedVideos = window.localStorage.getItem(RENDERED_VIDEO_KEY);
+    if (savedVideos) {
+      try {
+        const parsedVideos = JSON.parse(savedVideos) as RenderedVideo[];
+        setVideos(Array.isArray(parsedVideos) ? parsedVideos : []);
+      } catch {
+        setVideos([]);
       }
-    } catch {
-      window.localStorage.removeItem(STORAGE_KEY);
-    } finally {
-      setHasLoadedItems(true);
     }
   }, []);
 
@@ -102,6 +124,24 @@ export function PublishingPage() {
     setItems((current) =>
       current.map((item) => (item.id === id ? { ...item, status } : item))
     );
+  }
+
+  function createPublishingItem(video: RenderedVideo) {
+    if (items.some((item) => item.sourceVideoId === video.id)) {
+      return;
+    }
+
+    const item: PublishingItem = {
+      id: crypto.randomUUID(),
+      title: video.title ?? video.name ?? video.fileName,
+      platform: "YouTube Shorts",
+      status: "待發布",
+      scheduledDate: new Date().toISOString().slice(0, 10),
+      note: `來自成品影片：${video.fileName}；專案：${video.projectName}`,
+      sourceVideoId: video.id
+    };
+
+    setItems((current) => [item, ...current]);
   }
 
   return (
@@ -138,6 +178,37 @@ export function PublishingPage() {
           </Card>
         ))}
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>已完成影片</CardTitle>
+          <CardDescription>從素材庫匯入的 MP4 可直接建立發布項目。</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {videos.length === 0 ? (
+            <p className="rounded-md border bg-background p-3 text-sm text-muted-foreground">
+              尚無已匯入影片。
+            </p>
+          ) : (
+            videos.map((video) => (
+              <div key={video.id} className="flex flex-col gap-3 rounded-md border bg-background p-3 text-sm sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="font-medium">{video.title ?? video.name ?? video.fileName}</p>
+                  <p className="mt-1 text-muted-foreground">{video.projectName} · {video.fileName}</p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => createPublishingItem(video)}
+                  disabled={items.some((item) => item.sourceVideoId === video.id)}
+                >
+                  {items.some((item) => item.sourceVideoId === video.id) ? "已建立" : "建立發布項目"}
+                </Button>
+              </div>
+            ))
+          )}
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>

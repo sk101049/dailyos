@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import {
+  getGeminiOperation,
   getGeminiVideoApiStatus,
   startGeminiVeoVideo
 } from "@/lib/video-providers/gemini";
@@ -16,7 +17,14 @@ type GeminiVideoRequest = {
   personGeneration?: "allow_all" | "allow_adult" | "dont_allow";
 };
 
-export function GET() {
+export async function GET(request: Request) {
+  const operationName = new URL(request.url).searchParams.get("operationName");
+
+  if (operationName) {
+    const result = await getGeminiOperation(operationName);
+    return NextResponse.json(result, { status: result.ok ? 200 : 503 });
+  }
+
   return NextResponse.json({
     provider: "gemini",
     videoApi: getGeminiVideoApiStatus()
