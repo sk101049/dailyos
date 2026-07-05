@@ -19,6 +19,35 @@ type Asset = {
   name?: string;
 };
 
+type Brand = {
+  id: string;
+  name: string;
+  primaryColor: string;
+  subtitleStyle: string;
+  introNote: string;
+  outroCta: string;
+  defaultCharacterId: string;
+  defaultVoiceId: string;
+  defaultVideoStyle: string;
+};
+
+type ProductionPackageAsset = Asset & {
+  script?: {
+    title: string;
+    hook: string;
+    script: string;
+    cta: string;
+    coverText: string;
+  } | null;
+  storyboard?: Array<{
+    shot: string;
+    visual: string;
+    narration: string;
+    subtitle: string;
+    broll?: string;
+  }>;
+};
+
 type DirectorPlan = {
   projectName: string;
   scriptTitle: string;
@@ -43,6 +72,7 @@ const STORYBOARD_KEY = "dailyos-storyboard-v2";
 const CHARACTER_KEY = "dailyos-character-library";
 const VOICE_KEY = "dailyos-voice-library";
 const PACKAGE_KEY = "dailyos-video-packages";
+const BRAND_KEY = "dailyos-brand-library";
 
 const defaultPrompt =
   "我要做一支30秒介紹ChatGPT最新功能的短影片，風格活潑，目標觀眾25~40歲。";
@@ -104,12 +134,16 @@ export function DirectorPage() {
   const [prompt, setPrompt] = useState(defaultPrompt);
   const [category, setCategory] = useState("AI");
   const [brand, setBrand] = useState("");
+  const [brandId, setBrandId] = useState("");
+  const [assetPackageId, setAssetPackageId] = useState("");
   const [projectId, setProjectId] = useState("");
   const [characterId, setCharacterId] = useState("");
   const [voiceId, setVoiceId] = useState("");
   const [ratio, setRatio] = useState("9:16");
   const [duration, setDuration] = useState("30 秒");
   const [projects, setProjects] = useState<Asset[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [packages, setPackages] = useState<ProductionPackageAsset[]>([]);
   const [characters, setCharacters] = useState<Asset[]>([]);
   const [voices, setVoices] = useState<Asset[]>([]);
   const [plan, setPlan] = useState<DirectorPlan | null>(null);
@@ -117,6 +151,8 @@ export function DirectorPage() {
 
   useEffect(() => {
     setProjects(readArray<Asset>(PROJECTS_KEY));
+    setBrands(readArray<Brand>(BRAND_KEY));
+    setPackages(readArray<ProductionPackageAsset>(PACKAGE_KEY));
     setCharacters(readArray<Asset>(CHARACTER_KEY));
     setVoices(readArray<Asset>(VOICE_KEY));
   }, []);
@@ -153,6 +189,53 @@ export function DirectorPage() {
   function planWithAi() {
     setPlan(buildPlan(prompt, category, duration));
     setMessage("AI Director 已整理可編輯預覽，確認後才會寫入本機資料。");
+  }
+
+  function applyBrand() {
+    const selected = brands.find((item) => item.id === brandId);
+    if (!selected) {
+      setMessage("請先選擇品牌。");
+      return;
+    }
+
+    setBrand(selected.name);
+    setCharacterId(selected.defaultCharacterId);
+    setVoiceId(selected.defaultVoiceId);
+    setPrompt((current) =>
+      [
+        current,
+        `品牌風格：${selected.defaultVideoStyle}`,
+        `字幕樣式：${selected.subtitleStyle}`,
+        `片頭：${selected.introNote}`,
+        `片尾 CTA：${selected.outroCta}`
+      ].join("\n")
+    );
+    setMessage(`已套用品牌「${selected.name}」。`);
+  }
+
+  function applyAssetPackage() {
+    const selected = packages.find((item) => item.id === assetPackageId);
+    if (!selected?.script) {
+      setMessage("請先選擇含有腳本的製作包。");
+      return;
+    }
+
+    setPlan({
+      projectName: titleOf(selected),
+      scriptTitle: selected.script.title,
+      hook: selected.script.hook,
+      script: selected.script.script,
+      cta: selected.script.cta,
+      coverText: selected.script.coverText,
+      storyboard: (selected.storyboard ?? []).map((scene) => ({
+        shot: scene.shot,
+        visual: scene.visual,
+        narration: scene.narration,
+        subtitle: scene.subtitle,
+        broll: scene.broll ?? ""
+      }))
+    });
+    setMessage(`已從素材庫載入「${titleOf(selected)}」。`);
   }
 
   function startProduction() {
@@ -307,6 +390,8 @@ export function DirectorPage() {
 
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-5">
           <Field label="品牌" value={brand} onChange={setBrand} placeholder="可留白" />
+          <Select label="套用品牌" value={brandId} onChange={setBrandId} placeholder="選擇品牌" options={brands.map((item) => ({ label: item.name, value: item.id }))} />
+          <Select label="從素材庫選擇" value={assetPackageId} onChange={setAssetPackageId} placeholder="選擇製作包" options={packages.map((item) => ({ label: titleOf(item), value: item.id }))} />
           <Select label="專案" value={projectId} onChange={setProjectId} placeholder="建立新專案" options={projects.map((item) => ({ label: titleOf(item), value: item.id }))} />
           <Select label="人物模板" value={characterId} onChange={setCharacterId} placeholder="自動建立" options={characters.map((item) => ({ label: titleOf(item), value: item.id }))} />
           <Select label="配音" value={voiceId} onChange={setVoiceId} placeholder="自動建立" options={voices.map((item) => ({ label: titleOf(item), value: item.id }))} />
@@ -314,7 +399,11 @@ export function DirectorPage() {
           <Select label="影片長度" value={duration} onChange={setDuration} placeholder="選擇長度" options={["30 秒", "60 秒", "90 秒"].map((item) => ({ label: item, value: item }))} />
         </div>
 
-        <Button onClick={planWithAi}>AI 幫我規劃</Button>
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={planWithAi}>AI 幫我規劃</Button>
+          <Button variant="outline" onClick={applyBrand}>套用品牌</Button>
+          <Button variant="outline" onClick={applyAssetPackage}>載入素材</Button>
+        </div>
       </section>
 
       {message ? (

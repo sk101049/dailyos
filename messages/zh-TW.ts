@@ -8,6 +8,8 @@ export const messages = {
     dashboard: "儀表板",
     director: "AI Director",
     projects: "專案",
+    brandStudio: "品牌工作室",
+    assetLibrary: "素材庫",
     content: "內容工作室",
     contentStudio: "內容工作室",
     aiScript: "AI 腳本",
