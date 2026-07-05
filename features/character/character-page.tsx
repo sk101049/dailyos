@@ -153,7 +153,7 @@ export function CharacterPage() {
 
   function saveProfile() {
     if (!form.name.trim()) {
-      setMessage("Profile name is required.");
+      setMessage("請先輸入模板名稱。");
       return;
     }
 
@@ -167,7 +167,7 @@ export function CharacterPage() {
             : profile
         )
       );
-      setMessage("Character profile updated.");
+      setMessage("人物模板已更新。");
       return;
     }
 
@@ -181,7 +181,7 @@ export function CharacterPage() {
 
     setProfiles((current) => [profile, ...current]);
     setEditingId(profile.id);
-    setMessage("Character profile created.");
+    setMessage("人物模板已建立。");
   }
 
   function editProfile(profile: CharacterProfile) {
@@ -196,7 +196,7 @@ export function CharacterPage() {
       setEditingId(null);
       setForm(emptyForm());
     }
-    setMessage("Character profile deleted.");
+    setMessage("人物模板已刪除。");
   }
 
   function newVersion(profile: CharacterProfile) {
@@ -212,7 +212,7 @@ export function CharacterPage() {
     setProfiles((current) => [nextProfile, ...current]);
     setEditingId(nextProfile.id);
     setForm(toForm(nextProfile));
-    setMessage(`Created v${nextProfile.version}.`);
+    setMessage(`已建立 v${nextProfile.version}。`);
   }
 
   function exportJson(profile: CharacterProfile) {
@@ -229,12 +229,12 @@ export function CharacterPage() {
 
   async function copyPrompt() {
     if (!navigator.clipboard?.writeText) {
-      setMessage("Clipboard is unavailable. Prompt package is visible below.");
+      setMessage("剪貼簿不可用，請直接複製下方提示詞包。");
       return;
     }
 
     await navigator.clipboard.writeText(promptPackage);
-    setMessage("Character prompt package copied.");
+    setMessage("人物提示詞包已複製。");
   }
 
   return (
@@ -242,13 +242,12 @@ export function CharacterPage() {
       <section className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-medium text-primary">Character Studio</p>
+            <p className="text-sm font-medium text-primary">人物模板</p>
             <h2 className="mt-2 text-3xl font-semibold tracking-normal">
-              Character Library
+              人物模板庫
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-              Create reusable presenter identities with reference images, locked visual traits,
-              versioning, and exportable prompt packages.
+              建立可重用的主持人人物設定，保存參考圖片、固定外觀特徵、版本與可匯出的提示詞包。
             </p>
           </div>
           <Badge variant="secondary" className="w-fit">
@@ -260,9 +259,9 @@ export function CharacterPage() {
           <CardHeader>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <CardTitle>{editingId ? "Edit Profile" : "Create Profile"}</CardTitle>
+                <CardTitle>{editingId ? "編輯人物模板" : "建立人物模板"}</CardTitle>
                 <CardDescription>
-                  Reference files stay local for now; DailyOS stores filenames and profile settings.
+                  參考檔案目前保留在本機；DailyOS 只儲存檔名與人物設定。
                 </CardDescription>
               </div>
               <Button
@@ -273,7 +272,7 @@ export function CharacterPage() {
                   setMessage(null);
                 }}
               >
-                New Profile
+                新增模板
               </Button>
             </div>
           </CardHeader>
@@ -286,7 +285,7 @@ export function CharacterPage() {
 
             <div className="grid gap-4 md:grid-cols-2">
               <label className="space-y-2">
-                <span className="text-sm font-medium">Profile name</span>
+                <span className="text-sm font-medium">模板名稱</span>
                 <input
                   className="h-10 w-full rounded-md border bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   value={form.name}
@@ -296,7 +295,7 @@ export function CharacterPage() {
                 />
               </label>
               <label className="space-y-2">
-                <span className="text-sm font-medium">Version</span>
+                <span className="text-sm font-medium">版本</span>
                 <input
                   type="number"
                   min="1"
@@ -315,7 +314,7 @@ export function CharacterPage() {
             <div className="grid gap-4 md:grid-cols-3">
               {angles.map((angle) => (
                 <label key={angle} className="space-y-2 rounded-md border bg-secondary/30 p-3">
-                  <span className="text-sm font-medium">{angle} reference</span>
+                  <span className="text-sm font-medium">{angle} 參考圖</span>
                   <input
                     type="file"
                     accept="image/*"
@@ -324,7 +323,7 @@ export function CharacterPage() {
                   />
                   <span className="block truncate text-xs text-muted-foreground">
                     {form.references.find((image) => image.angle === angle)?.fileName ||
-                      "No file selected"}
+                      "尚未選擇檔案"}
                   </span>
                 </label>
               ))}
@@ -332,46 +331,46 @@ export function CharacterPage() {
 
             <div className="grid gap-4 md:grid-cols-2">
               <TextField
-                label="Hairstyle"
+                label="髮型"
                 value={form.hairstyle}
                 onChange={(value) => setForm((current) => ({ ...current, hairstyle: value }))}
               />
               <TextField
-                label="Hair color"
+                label="髮色"
                 value={form.hairColor}
                 onChange={(value) => setForm((current) => ({ ...current, hairColor: value }))}
               />
               <TextField
-                label="Outfit"
+                label="穿搭"
                 value={form.outfit}
                 onChange={(value) => setForm((current) => ({ ...current, outfit: value }))}
               />
               <TextField
-                label="Expressions"
+                label="表情與手勢"
                 value={form.expressions}
                 onChange={(value) => setForm((current) => ({ ...current, expressions: value }))}
               />
               <TextField
-                label="Brand attributes"
+                label="品牌特質"
                 value={form.brandAttributes}
                 onChange={(value) =>
                   setForm((current) => ({ ...current, brandAttributes: value }))
                 }
               />
               <TextField
-                label="Provider notes"
+                label="Provider 備註"
                 value={form.providerNotes}
                 onChange={(value) => setForm((current) => ({ ...current, providerNotes: value }))}
               />
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <Button onClick={saveProfile}>{editingId ? "Save Changes" : "Create Profile"}</Button>
+              <Button onClick={saveProfile}>{editingId ? "儲存變更" : "建立模板"}</Button>
               <Button variant="outline" onClick={copyPrompt}>
-                Copy Prompt Package
+                複製提示詞包
               </Button>
               <Button variant="outline" onClick={() => exportJson(selectedProfile)}>
-                Export Selected JSON
+                匯出選取 JSON
               </Button>
             </div>
           </CardContent>
@@ -379,9 +378,9 @@ export function CharacterPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Reusable Character Prompt Package</CardTitle>
+            <CardTitle>可重用人物提示詞包</CardTitle>
             <CardDescription>
-              Provider-agnostic package for future image, video, or OpenMontage handoffs.
+              可交給未來圖片、影片或 OpenMontage 流程使用的 provider-agnostic 提示詞包。
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -395,8 +394,8 @@ export function CharacterPage() {
       <aside className="space-y-4">
         <Card className="xl:sticky xl:top-24">
           <CardHeader>
-            <CardTitle>Profiles</CardTitle>
-            <CardDescription>{profiles.length} saved character profiles</CardDescription>
+            <CardTitle>人物模板</CardTitle>
+            <CardDescription>{profiles.length} 個已儲存人物模板</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {profiles.map((profile) => (
@@ -408,25 +407,25 @@ export function CharacterPage() {
                   <div>
                     <p className="font-medium">{profile.name}</p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      v{profile.version} - {profile.references.length} references
+                      v{profile.version} - {profile.references.length} 張參考圖
                     </p>
                   </div>
                   <Badge variant={profile.id === selectedProfile.id ? "default" : "outline"}>
-                    {profile.id === selectedProfile.id ? "Selected" : "Library"}
+                    {profile.id === selectedProfile.id ? "已選取" : "資料庫"}
                   </Badge>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Button variant="secondary" size="sm" onClick={() => editProfile(profile)}>
-                    Edit
+                    編輯
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => newVersion(profile)}>
-                    New Version
+                    新版本
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => exportJson(profile)}>
-                    Export
+                    匯出
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => deleteProfile(profile.id)}>
-                    Delete
+                    刪除
                   </Button>
                 </div>
               </article>

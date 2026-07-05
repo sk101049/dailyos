@@ -219,12 +219,12 @@ export function DashboardPage() {
 
   const steps = [
     { label: "專案", done: Boolean(projectTitle.trim()), href: "/dashboard" },
-    { label: "腳本", done: Boolean(productionPackage.script), href: "/content" },
+    { label: "腳本", done: Boolean(productionPackage.script), href: "/content#script" },
     { label: "人物", done: Boolean(productionPackage.character), href: "/character" },
     { label: "聲音", done: Boolean(productionPackage.voice), href: "/voice" },
-    { label: "分鏡", done: productionPackage.storyboard.length > 0, href: "/content" },
-    { label: "Provider", done: Boolean(provider), href: "/video" },
-    { label: "製作包", done: packages.length > 0, href: "/video" }
+    { label: "分鏡", done: productionPackage.storyboard.length > 0, href: "/content#storyboard" },
+    { label: "影片服務", done: Boolean(provider), href: "/video#providers" },
+    { label: "製作包", done: packages.length > 0, href: "/video#export" }
   ];
   const completedSteps = steps.filter((step) => step.done).length;
   const missingSteps = steps.filter((step) => !step.done);
@@ -236,7 +236,7 @@ export function DashboardPage() {
     const next = [productionPackage, ...packages];
     setPackages(next);
     window.localStorage.setItem(PACKAGE_KEY, JSON.stringify(next));
-    setMessage("Production package 已從 Creator Dashboard 儲存。");
+    setMessage("製作包已從創作者儀表板儲存。");
   }
 
   return (
@@ -244,7 +244,7 @@ export function DashboardPage() {
       <section className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-medium text-primary">Creator Dashboard</p>
+            <p className="text-sm font-medium text-primary">創作者儀表板</p>
             <h2 className="mt-2 text-3xl font-semibold tracking-normal">
               今日內容生產工作台
             </h2>
@@ -253,7 +253,7 @@ export function DashboardPage() {
             </p>
           </div>
           <Badge variant="secondary" className="w-fit">
-            LocalStorage only
+            僅本機儲存
           </Badge>
         </div>
 
@@ -261,13 +261,13 @@ export function DashboardPage() {
           <CardHeader>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <CardTitle>Production Wizard</CardTitle>
+                <CardTitle>製作流程精靈</CardTitle>
                 <CardDescription>
                   {completedSteps} / {steps.length} 步完成。缺少資產時，使用下方捷徑回到既有 Studio 建立。
                 </CardDescription>
               </div>
               <Button onClick={savePackage} disabled={missingRequiredSteps.length > 0}>
-                產生 production package
+                產生製作包
               </Button>
             </div>
           </CardHeader>
@@ -307,7 +307,7 @@ export function DashboardPage() {
                 onChange={setVoiceId}
               />
               <SelectField
-                label="Provider"
+                label="影片服務"
                 value={provider}
                 placeholder="選擇 provider..."
                 options={[
@@ -325,7 +325,7 @@ export function DashboardPage() {
               <div className="rounded-md border bg-secondary/30 p-3 text-sm">
                 <p className="font-medium">最近製作包</p>
                 <p className="mt-2 text-muted-foreground">
-                  {packages[0]?.title ?? "尚未產生 production package"}
+                  {packages[0]?.title ?? "尚未產生製作包"}
                 </p>
               </div>
             </div>
@@ -370,7 +370,7 @@ export function DashboardPage() {
 
           <Card>
             <CardHeader>
-              <CardTitle>Publishing Queue</CardTitle>
+              <CardTitle>發布佇列</CardTitle>
               <CardDescription>快速查看尚未發布的內容</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -386,7 +386,7 @@ export function DashboardPage() {
                 </div>
               ))}
               <Button asChild variant="outline" size="sm">
-                <Link href="/publishing">開啟 Publishing</Link>
+                <Link href="/publishing">開啟發布中心</Link>
               </Button>
             </CardContent>
           </Card>
@@ -396,20 +396,20 @@ export function DashboardPage() {
       <aside className="space-y-4">
         <Card className="xl:sticky xl:top-24">
           <CardHeader>
-            <CardTitle>Resume Last Project</CardTitle>
-            <CardDescription>從最近的本機 production package 繼續。</CardDescription>
+            <CardTitle>繼續上次專案</CardTitle>
+            <CardDescription>從最近的本機製作包繼續。</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <SummaryRow label="Active project" value={activeProject?.name ?? "未選擇"} />
-            <SummaryRow label="Brand" value={activeProject?.brand ?? "未設定"} />
+            <SummaryRow label="目前專案" value={activeProject?.name ?? "未選擇"} />
+            <SummaryRow label="品牌" value={activeProject?.brand ?? "未設定"} />
             <SummaryRow label="專案" value={packages[0]?.title ?? projectTitle} />
             <SummaryRow label="腳本" value={productionPackage.script?.title ?? "未選擇"} />
             <SummaryRow label="人物" value={productionPackage.character?.name ?? "未選擇"} />
             <SummaryRow label="聲音" value={productionPackage.voice?.name ?? "未選擇"} />
             <SummaryRow label="分鏡" value={`${storyboard.length} 場`} />
-            <SummaryRow label="Provider" value={provider} />
+            <SummaryRow label="影片服務" value={provider} />
             <Button asChild className="w-full">
-              <Link href="/video">到 Video Studio 匯出</Link>
+              <Link href="/video#export">到影片工作室匯出</Link>
             </Button>
           </CardContent>
         </Card>

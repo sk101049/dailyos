@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "DailyOS",
-  description: "Personal AI insurance workspace"
+  description: "保險內容創作與每日工作空間"
 };
 
 export default function RootLayout({
@@ -13,7 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="zh-Hant-TW">
       <body>
         <AppShell>{children}</AppShell>
       </body>

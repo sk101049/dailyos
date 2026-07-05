@@ -1,15 +1,30 @@
 export const messages = {
   app: {
-    tagline: "個人保險工作空間",
-    headerLabel: "每日工作區",
+    tagline: "保險內容創作與每日工作空間",
+    headerLabel: "DailyOS 工作區",
     today: "今日"
   },
   navigation: {
-    dashboard: "工作儀表板",
+    dashboard: "儀表板",
+    projects: "專案",
     content: "內容工作室",
-    crm: "客戶管理",
+    contentStudio: "內容工作室",
+    aiScript: "AI 腳本",
+    storyboard: "分鏡",
+    character: "人物模板",
+    voice: "聲音",
+    cover: "封面",
+    videoStudio: "影片工作室",
+    videoCenter: "製作中心",
+    geminiRender: "Gemini Render",
+    export: "匯出",
+    operations: "營運中心",
+    calendar: "行事曆",
     publishing: "發布中心",
-    calendar: "內容行事曆"
+    settings: "設定",
+    apiKeys: "API Keys",
+    providers: "影片服務",
+    crm: "客戶管理"
   },
   common: {
     aiAssistant: "AI 助理",

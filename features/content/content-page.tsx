@@ -316,39 +316,43 @@ export function ContentPage() {
       <section className="space-y-6">
         <PageHero />
         <TopicSelector />
-        <StoryboardBuilder
-          rows={storyboardRows}
-          message={storyboardCopyMessage}
-          onBuild={handleBuildStoryboard}
-          onCopy={handleCopyStoryboard}
-          onAdd={handleAddStoryboardRow}
-          onDelete={handleDeleteStoryboardRow}
-          onUpdate={handleUpdateStoryboardRow}
-          onApplyCharacterLock={handleApplyCharacterLock}
-          onApplyVoiceLock={handleApplyVoiceLock}
-        />
+        <div id="storyboard" className="scroll-mt-24">
+          <StoryboardBuilder
+            rows={storyboardRows}
+            message={storyboardCopyMessage}
+            onBuild={handleBuildStoryboard}
+            onCopy={handleCopyStoryboard}
+            onAdd={handleAddStoryboardRow}
+            onDelete={handleDeleteStoryboardRow}
+            onUpdate={handleUpdateStoryboardRow}
+            onApplyCharacterLock={handleApplyCharacterLock}
+            onApplyVoiceLock={handleApplyVoiceLock}
+          />
+        </div>
         <AIImageStudio script={generatedScript} storyboardRows={storyboardRows} />
         <DigitalHumanStudio script={generatedScript} />
-        <ThumbnailPromptBuilder
-          prompt={thumbnailPrompt}
-          style={thumbnailStyle}
-          ratio={thumbnailRatio}
-          includePerson={thumbnailIncludePerson}
-          message={thumbnailCopyMessage}
-          onCopy={handleCopyThumbnailPrompt}
-          onStyleChange={(value) => {
-            setThumbnailCopyMessage(null);
-            setThumbnailStyle(value);
-          }}
-          onRatioChange={(value) => {
-            setThumbnailCopyMessage(null);
-            setThumbnailRatio(value);
-          }}
-          onIncludePersonChange={(value) => {
-            setThumbnailCopyMessage(null);
-            setThumbnailIncludePerson(value);
-          }}
-        />
+        <div id="cover" className="scroll-mt-24">
+          <ThumbnailPromptBuilder
+            prompt={thumbnailPrompt}
+            style={thumbnailStyle}
+            ratio={thumbnailRatio}
+            includePerson={thumbnailIncludePerson}
+            message={thumbnailCopyMessage}
+            onCopy={handleCopyThumbnailPrompt}
+            onStyleChange={(value) => {
+              setThumbnailCopyMessage(null);
+              setThumbnailStyle(value);
+            }}
+            onRatioChange={(value) => {
+              setThumbnailCopyMessage(null);
+              setThumbnailRatio(value);
+            }}
+            onIncludePersonChange={(value) => {
+              setThumbnailCopyMessage(null);
+              setThumbnailIncludePerson(value);
+            }}
+          />
+        </div>
         <ScriptLibrary
           scripts={savedScripts}
           status={scriptStatus}
@@ -367,15 +371,17 @@ export function ContentPage() {
           }}
           onApply={handleApplyGptOutput}
         />
-        <ScriptGenerator
-          formValues={formValues}
-          script={generatedScript}
-          isGenerating={isGenerating}
-          error={error}
-          onFormChange={handleFormChange}
-          onGenerate={handleGenerateScript}
-          onScriptChange={handleUpdatePreviewField}
-        />
+        <div id="script" className="scroll-mt-24">
+          <ScriptGenerator
+            formValues={formValues}
+            script={generatedScript}
+            isGenerating={isGenerating}
+            error={error}
+            onFormChange={handleFormChange}
+            onGenerate={handleGenerateScript}
+            onScriptChange={handleUpdatePreviewField}
+          />
+        </div>
         <GptMode
           prompt={gptPrompt}
           message={copyMessage}

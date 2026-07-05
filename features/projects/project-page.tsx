@@ -191,7 +191,7 @@ export function ProjectPage() {
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
       <section className="space-y-6">
         <div>
-          <p className="text-sm font-medium text-primary">Project Studio</p>
+          <p className="text-sm font-medium text-primary">專案工作室</p>
           <h2 className="mt-2 text-3xl font-semibold tracking-normal">創作專案中心</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
             管理專案中使用的腳本、分鏡、影片、Calendar 與 Publishing items。所有資料都保存在 localStorage。
@@ -201,38 +201,38 @@ export function ProjectPage() {
         <Card>
           <CardHeader>
             <CardTitle>{editingId ? "編輯專案" : "建立專案"}</CardTitle>
-            <CardDescription>設定預設人物、聲音、Video Provider，並連結現有資產。</CardDescription>
+            <CardDescription>設定預設人物、聲音、影片服務，並連結現有資產。</CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
             {message ? (
               <p className="rounded-md border bg-background px-3 py-2 text-sm text-muted-foreground">{message}</p>
             ) : null}
             <div className="grid gap-4 md:grid-cols-2">
-              <TextField label="Name" value={form.name} onChange={(value) => setForm({ ...form, name: value })} />
-              <TextField label="Brand" value={form.brand} onChange={(value) => setForm({ ...form, brand: value })} />
+              <TextField label="專案名稱" value={form.name} onChange={(value) => setForm({ ...form, name: value })} />
+              <TextField label="品牌" value={form.brand} onChange={(value) => setForm({ ...form, brand: value })} />
               <SelectField
-                label="Default Character"
+                label="預設人物"
                 value={form.defaultCharacterId}
                 placeholder="選擇人物..."
                 options={characters}
                 onChange={(value) => setForm({ ...form, defaultCharacterId: value })}
               />
               <SelectField
-                label="Default Voice"
+                label="預設聲音"
                 value={form.defaultVoiceId}
                 placeholder="選擇聲音..."
                 options={voices}
                 onChange={(value) => setForm({ ...form, defaultVoiceId: value })}
               />
               <SelectField
-                label="Default Video Provider"
+                label="預設影片服務"
                 value={form.defaultVideoProvider}
                 placeholder="選擇 provider..."
                 options={[{ id: "Gemini", title: "Gemini" }, { id: "OpenMontage", title: "OpenMontage" }]}
                 onChange={(value) => setForm({ ...form, defaultVideoProvider: value })}
               />
               <label className="space-y-2 md:col-span-2">
-                <span className="text-sm font-medium">Description</span>
+                <span className="text-sm font-medium">專案描述</span>
                 <textarea
                   className="min-h-24 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   value={form.description}
@@ -242,11 +242,11 @@ export function ProjectPage() {
             </div>
 
             <div className="grid gap-4 md:grid-cols-2">
-              <AssetPicker title="Scripts" assets={scripts} selectedIds={form.scriptIds} onToggle={(id) => setForm({ ...form, scriptIds: toggleId(form.scriptIds, id) })} />
-              <AssetPicker title="Storyboards" assets={storyboards} selectedIds={form.storyboardIds} onToggle={(id) => setForm({ ...form, storyboardIds: toggleId(form.storyboardIds, id) })} />
-              <AssetPicker title="Videos" assets={videos} selectedIds={form.videoIds} onToggle={(id) => setForm({ ...form, videoIds: toggleId(form.videoIds, id) })} />
-              <AssetPicker title="Calendar items" assets={calendarItems} selectedIds={form.calendarItemIds} onToggle={(id) => setForm({ ...form, calendarItemIds: toggleId(form.calendarItemIds, id) })} />
-              <AssetPicker title="Publishing items" assets={publishingItems} selectedIds={form.publishingItemIds} onToggle={(id) => setForm({ ...form, publishingItemIds: toggleId(form.publishingItemIds, id) })} />
+              <AssetPicker title="腳本" assets={scripts} selectedIds={form.scriptIds} onToggle={(id) => setForm({ ...form, scriptIds: toggleId(form.scriptIds, id) })} />
+              <AssetPicker title="分鏡" assets={storyboards} selectedIds={form.storyboardIds} onToggle={(id) => setForm({ ...form, storyboardIds: toggleId(form.storyboardIds, id) })} />
+              <AssetPicker title="影片製作包" assets={videos} selectedIds={form.videoIds} onToggle={(id) => setForm({ ...form, videoIds: toggleId(form.videoIds, id) })} />
+              <AssetPicker title="行事曆項目" assets={calendarItems} selectedIds={form.calendarItemIds} onToggle={(id) => setForm({ ...form, calendarItemIds: toggleId(form.calendarItemIds, id) })} />
+              <AssetPicker title="發布項目" assets={publishingItems} selectedIds={form.publishingItemIds} onToggle={(id) => setForm({ ...form, publishingItemIds: toggleId(form.publishingItemIds, id) })} />
             </div>
 
             <div className="flex flex-wrap gap-2">
@@ -263,19 +263,19 @@ export function ProjectPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <CardTitle>{project.name}</CardTitle>
-                    <CardDescription>{project.description || "No description"}</CardDescription>
+                    <CardDescription>{project.description || "尚無描述"}</CardDescription>
                   </div>
                   <Badge variant={project.id === activeProjectId ? "default" : "outline"}>
-                    {project.id === activeProjectId ? "Active" : project.status}
+                    {project.id === activeProjectId ? "使用中" : project.status === "archived" ? "已封存" : "可用"}
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
-                <SummaryRow label="Brand" value={project.brand || "未設定"} />
-                <SummaryRow label="Provider" value={project.defaultVideoProvider} />
-                <SummaryRow label="Linked assets" value={`${project.scriptIds.length + project.storyboardIds.length + project.videoIds.length + project.calendarItemIds.length + project.publishingItemIds.length}`} />
+                <SummaryRow label="品牌" value={project.brand || "未設定"} />
+                <SummaryRow label="影片服務" value={project.defaultVideoProvider} />
+                <SummaryRow label="已連結資產" value={`${project.scriptIds.length + project.storyboardIds.length + project.videoIds.length + project.calendarItemIds.length + project.publishingItemIds.length}`} />
                 <div className="flex flex-wrap gap-2">
-                  <Button size="sm" onClick={() => setActive(project.id)} disabled={project.status === "archived"}>設為 active</Button>
+                  <Button size="sm" onClick={() => setActive(project.id)} disabled={project.status === "archived"}>設為目前專案</Button>
                   <Button size="sm" variant="outline" onClick={() => editProject(project)}>編輯</Button>
                   <Button size="sm" variant="outline" onClick={() => archiveProject(project)}>封存</Button>
                   <Button size="sm" variant="outline" onClick={() => deleteProject(project.id)}>刪除</Button>
@@ -289,15 +289,15 @@ export function ProjectPage() {
       <aside className="space-y-4">
         <Card className="xl:sticky xl:top-24">
           <CardHeader>
-            <CardTitle>Active Project</CardTitle>
-            <CardDescription>Dashboard 和 Production Wizard 會優先使用這個專案。</CardDescription>
+            <CardTitle>目前專案</CardTitle>
+            <CardDescription>儀表板和製作流程精靈會優先使用這個專案。</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <SummaryRow label="Name" value={activeProject?.name ?? "尚未選擇"} />
-            <SummaryRow label="Brand" value={activeProject?.brand ?? "未設定"} />
-            <SummaryRow label="Provider" value={activeProject?.defaultVideoProvider ?? "Gemini"} />
-            <SummaryRow label="Scripts" value={String(activeProject?.scriptIds.length ?? 0)} />
-            <SummaryRow label="Videos" value={String(activeProject?.videoIds.length ?? 0)} />
+            <SummaryRow label="名稱" value={activeProject?.name ?? "尚未選擇"} />
+            <SummaryRow label="品牌" value={activeProject?.brand ?? "未設定"} />
+            <SummaryRow label="影片服務" value={activeProject?.defaultVideoProvider ?? "Gemini"} />
+            <SummaryRow label="腳本" value={String(activeProject?.scriptIds.length ?? 0)} />
+            <SummaryRow label="影片" value={String(activeProject?.videoIds.length ?? 0)} />
           </CardContent>
         </Card>
       </aside>

@@ -370,9 +370,9 @@ export function VideoPage() {
   );
   const nextSteps = [
     productionPackage.script ? null : "到 Script Studio 儲存一支腳本。",
-    productionPackage.character ? null : "到 Character Studio 建立一個人物模板。",
-    productionPackage.voice ? null : "到 Voice Studio 建立一個聲音模板。",
-    productionPackage.storyboard.length ? null : "到 Storyboard Studio 建立分鏡場次。"
+    productionPackage.character ? null : "到人物模板建立一個人物。",
+    productionPackage.voice ? null : "到聲音工作室建立一個聲音。",
+    productionPackage.storyboard.length ? null : "到分鏡工作區建立分鏡場次。"
   ].filter((step): step is string => Boolean(step));
 
   function savePackage() {
@@ -485,7 +485,7 @@ export function VideoPage() {
       <section className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-medium text-primary">Video Studio</p>
+            <p className="text-sm font-medium text-primary">影片工作室</p>
             <h2 className="mt-2 text-3xl font-semibold tracking-normal">
               影片製作包
             </h2>
@@ -498,11 +498,11 @@ export function VideoPage() {
           </Badge>
         </div>
 
-        <Card>
+        <Card id="export" className="scroll-mt-24">
           <CardHeader>
             <CardTitle>素材選擇</CardTitle>
             <CardDescription>
-              重用 Script Library、Character Studio、Voice Studio 與 Storyboard Studio 的本機資料。
+              重用腳本庫、人物模板、聲音與分鏡工作區的本機資料。
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -626,7 +626,7 @@ export function VideoPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card id="gemini-render" className="scroll-mt-24">
           <CardHeader>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
@@ -676,13 +676,13 @@ export function VideoPage() {
               <TextArea
                 label="人物參考說明"
                 value={geminiSettings.characterReferenceNotes}
-                placeholder="留白時會使用 Character Studio 資料。"
+                placeholder="留白時會使用人物模板資料。"
                 onChange={(value) => updateGeminiSettings("characterReferenceNotes", value)}
               />
               <TextArea
                 label="聲音 / 音訊方向"
                 value={geminiSettings.voiceAudioDirection}
-                placeholder="留白時會使用 Voice Studio 資料。"
+                placeholder="留白時會使用聲音工作室資料。"
                 onChange={(value) => updateGeminiSettings("voiceAudioDirection", value)}
               />
               <TextArea
@@ -728,12 +728,12 @@ export function VideoPage() {
           <CardHeader>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <CardTitle>Gemini Render Test</CardTitle>
+                <CardTitle>Gemini 測試生成</CardTitle>
                 <CardDescription>
-                  使用 server-side Gemini provider spike 送出目前 prompt package。API key 不會暴露到前端。
+                  使用伺服器端 Gemini provider spike 送出目前提示詞包。API key 不會暴露到前端。
                 </CardDescription>
               </div>
-              <Badge variant="outline">Feature flag</Badge>
+              <Badge variant="outline">功能旗標</Badge>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -743,14 +743,14 @@ export function VideoPage() {
                 value={geminiVideoApi?.configured ? "已設定" : "未設定"}
               />
               <SummaryRow
-                label="Feature flag"
+                label="功能旗標"
                 value={geminiVideoApi?.enabled ? "已啟用" : "未啟用"}
               />
-              <SummaryRow label="Manual workflow" value="可用" />
+              <SummaryRow label="手動流程" value="可用" />
             </div>
             {geminiVideoApi?.configured && geminiVideoApi.enabled ? null : (
               <p className="rounded-md border bg-secondary/30 p-3 text-sm text-muted-foreground">
-                Blocker: {geminiVideoApi?.configured ? "" : "缺少 server-side Gemini API key。"}
+                阻擋原因：{geminiVideoApi?.configured ? "" : "缺少伺服器端 Gemini API key。"}
                 {geminiVideoApi?.enabled ? "" : " GEMINI_VIDEO_API_ENABLED 尚未設為 true。"}
                 手動 Gemini workflow 仍可使用。
               </p>
@@ -766,9 +766,9 @@ export function VideoPage() {
             {geminiRenderAttempt ? (
               <div className="space-y-3">
                 <div className="grid gap-3 md:grid-cols-3">
-                  <SummaryRow label="Last status" value={geminiRenderAttempt.status} />
-                  <SummaryRow label="Result" value={geminiRenderAttempt.ok ? "success" : "blocked/error"} />
-                  <SummaryRow label="Created" value={geminiRenderAttempt.createdAt} />
+                  <SummaryRow label="最後狀態" value={geminiRenderAttempt.status} />
+                  <SummaryRow label="結果" value={geminiRenderAttempt.ok ? "成功" : "阻擋或錯誤"} />
+                  <SummaryRow label="建立時間" value={geminiRenderAttempt.createdAt} />
                 </div>
                 <p className="rounded-md border bg-background p-3 text-sm text-muted-foreground">
                   {geminiRenderAttempt.message}
@@ -807,7 +807,7 @@ export function VideoPage() {
             <CardDescription>{packages.length} 個本機製作包</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <SummaryRow label="Provider" value={provider} />
+            <SummaryRow label="影片服務" value={provider} />
             <SummaryRow label="腳本" value={productionPackage.script?.title ?? "未選擇"} />
             <SummaryRow label="人物" value={productionPackage.character?.name ?? "未選擇"} />
             <SummaryRow label="聲音" value={productionPackage.voice?.name ?? "未選擇"} />
@@ -819,12 +819,12 @@ export function VideoPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card id="providers" className="scroll-mt-24">
           <CardHeader>
             <div className="flex items-start justify-between gap-3">
               <div>
-                <CardTitle>Provider 狀態</CardTitle>
-                <CardDescription>Server-side config only</CardDescription>
+                <CardTitle>影片服務狀態</CardTitle>
+                <CardDescription>僅顯示伺服器端設定狀態</CardDescription>
               </div>
               <Button variant="outline" size="sm" onClick={loadProviderStatuses}>
                 重新檢查

@@ -223,7 +223,7 @@ export function VoicePage() {
 
   function saveProfile() {
     if (!form.name.trim()) {
-      setMessage("Profile name is required.");
+      setMessage("請先輸入聲音名稱。");
       return;
     }
 
@@ -237,7 +237,7 @@ export function VoicePage() {
             : profile
         )
       );
-      setMessage("Voice profile updated.");
+      setMessage("聲音設定已更新。");
       return;
     }
 
@@ -251,7 +251,7 @@ export function VoicePage() {
 
     setProfiles((current) => [profile, ...current]);
     setEditingId(profile.id);
-    setMessage("Voice profile created.");
+    setMessage("聲音設定已建立。");
   }
 
   function editProfile(profile: VoiceProfile) {
@@ -266,7 +266,7 @@ export function VoicePage() {
       setEditingId(null);
       setForm(emptyForm());
     }
-    setMessage("Voice profile deleted.");
+    setMessage("聲音設定已刪除。");
   }
 
   function exportJson(profile: VoiceProfile) {
@@ -283,12 +283,12 @@ export function VoicePage() {
 
   async function copyPrompt() {
     if (!navigator.clipboard?.writeText) {
-      setMessage("Clipboard is unavailable. Prompt package is visible below.");
+      setMessage("剪貼簿不可用，請直接複製下方提示詞包。");
       return;
     }
 
     await navigator.clipboard.writeText(promptPackage);
-    setMessage("Voice prompt package copied.");
+    setMessage("聲音提示詞包已複製。");
   }
 
   return (
@@ -296,11 +296,10 @@ export function VoicePage() {
       <section className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-medium text-primary">Voice Studio</p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-normal">Voice Library</h2>
+            <p className="text-sm font-medium text-primary">聲音工作室</p>
+            <h2 className="mt-2 text-3xl font-semibold tracking-normal">聲音資料庫</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-              Create reusable narration identities, optimize scripts for spoken Traditional
-              Chinese, and export provider-agnostic voice prompt packages.
+              建立可重用的旁白聲音設定，將腳本改寫成適合口說的繁體中文，並匯出 provider-agnostic 聲音提示詞包。
             </p>
           </div>
           <Badge variant="secondary" className="w-fit">
@@ -312,9 +311,9 @@ export function VoicePage() {
           <CardHeader>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <CardTitle>{editingId ? "Edit Voice Profile" : "Create Voice Profile"}</CardTitle>
+                <CardTitle>{editingId ? "編輯聲音設定" : "建立聲音設定"}</CardTitle>
                 <CardDescription>
-                  No TTS or voice cloning is called. This stores identity settings only.
+                  這裡不呼叫 TTS 或聲音複製，只儲存聲音身份設定。
                 </CardDescription>
               </div>
               <Button
@@ -325,7 +324,7 @@ export function VoicePage() {
                   setMessage(null);
                 }}
               >
-                New Profile
+                新增聲音
               </Button>
             </div>
           </CardHeader>
@@ -338,12 +337,12 @@ export function VoicePage() {
 
             <div className="grid gap-4 md:grid-cols-2">
               <TextField
-                label="Name"
+                label="名稱"
                 value={form.name}
                 onChange={(value) => setForm((current) => ({ ...current, name: value }))}
               />
               <TextField
-                label="Gender / age range"
+                label="性別 / 年齡範圍"
                 value={form.genderAge}
                 onChange={(value) => setForm((current) => ({ ...current, genderAge: value }))}
               />
@@ -364,31 +363,31 @@ export function VoicePage() {
 
             <div className="grid gap-4 md:grid-cols-2">
               <TextField
-                label="Speaking style"
+                label="說話風格"
                 value={form.speakingStyle}
                 onChange={(value) =>
                   setForm((current) => ({ ...current, speakingStyle: value }))
                 }
               />
               <TextField
-                label="Tone"
+                label="語氣"
                 value={form.tone}
                 onChange={(value) => setForm((current) => ({ ...current, tone: value }))}
               />
               <SelectField
-                label="Speed"
+                label="速度"
                 value={form.speed}
                 options={["Slow", "Medium", "Fast"]}
                 onChange={(value) => setForm((current) => ({ ...current, speed: value }))}
               />
               <SelectField
-                label="Pause level"
+                label="停頓程度"
                 value={form.pauseLevel}
                 options={["Low", "Medium", "High"]}
                 onChange={(value) => setForm((current) => ({ ...current, pauseLevel: value }))}
               />
               <SelectField
-                label="Emotional warmth"
+                label="情緒溫度"
                 value={form.emotionalWarmth}
                 options={["Low", "Medium", "High"]}
                 onChange={(value) =>
@@ -396,7 +395,7 @@ export function VoicePage() {
                 }
               />
               <SelectField
-                label="Formality level"
+                label="正式程度"
                 value={form.formalityLevel}
                 options={["Casual", "Warm", "Professional"]}
                 onChange={(value) =>
@@ -404,14 +403,14 @@ export function VoicePage() {
                 }
               />
               <TextField
-                label="Provider notes"
+                label="Provider 備註"
                 value={form.providerNotes}
                 onChange={(value) =>
                   setForm((current) => ({ ...current, providerNotes: value }))
                 }
               />
               <TextField
-                label="Legal use note"
+                label="合法使用備註"
                 value={form.legalUseNote}
                 onChange={(value) =>
                   setForm((current) => ({ ...current, legalUseNote: value }))
@@ -420,12 +419,12 @@ export function VoicePage() {
             </div>
 
             <div className="flex flex-wrap gap-2">
-              <Button onClick={saveProfile}>{editingId ? "Save Changes" : "Create Profile"}</Button>
+              <Button onClick={saveProfile}>{editingId ? "儲存變更" : "建立聲音"}</Button>
               <Button variant="outline" onClick={copyPrompt}>
-                Copy Prompt Package
+                複製提示詞包
               </Button>
               <Button variant="outline" onClick={() => exportJson(selectedProfile)}>
-                Export Selected JSON
+                匯出選取 JSON
               </Button>
             </div>
           </CardContent>
@@ -433,9 +432,9 @@ export function VoicePage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Speech Optimizer</CardTitle>
+            <CardTitle>口說腳本優化</CardTitle>
             <CardDescription>
-              Paste a script or load one from Script Library, then rewrite it for spoken zh-TW.
+              貼上腳本或載入腳本庫內容，改寫成適合口說的繁體中文。
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -450,7 +449,7 @@ export function VoicePage() {
                   }
                 }}
               >
-                <option value="">Load a saved script...</option>
+                <option value="">載入已儲存腳本...</option>
                 {scripts.map((script) => (
                   <option key={script.id} value={script.id}>
                     {script.title}
@@ -462,22 +461,22 @@ export function VoicePage() {
               className="min-h-40 w-full rounded-md border bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
               value={scriptInput}
               onChange={(event) => setScriptInput(event.target.value)}
-              placeholder="Paste script here..."
+              placeholder="在這裡貼上腳本..."
             />
             <Button onClick={() => setOptimizedScript(optimizeSpeech(scriptInput))}>
-              Optimize for Speech
+              優化成口說稿
             </Button>
             <pre className="max-h-72 overflow-auto whitespace-pre-wrap break-words rounded-md bg-secondary/40 p-3 text-sm leading-6 text-muted-foreground">
-              {optimizedScript || "Optimized spoken Traditional Chinese will appear here."}
+              {optimizedScript || "優化後的繁體中文口說稿會顯示在這裡。"}
             </pre>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Reusable Voice Prompt Package</CardTitle>
+            <CardTitle>可重用聲音提示詞包</CardTitle>
             <CardDescription>
-              Provider-agnostic package for future Piper, ElevenLabs, OpenAI TTS, or Azure Speech adapters.
+              可交給未來 Piper、ElevenLabs、OpenAI TTS 或 Azure Speech adapter 使用的提示詞包。
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -491,8 +490,8 @@ export function VoicePage() {
       <aside className="space-y-4">
         <Card className="xl:sticky xl:top-24">
           <CardHeader>
-            <CardTitle>Profiles</CardTitle>
-            <CardDescription>{profiles.length} saved voice profiles</CardDescription>
+            <CardTitle>聲音設定</CardTitle>
+            <CardDescription>{profiles.length} 個已儲存聲音設定</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {profiles.map((profile) => (
@@ -505,18 +504,18 @@ export function VoicePage() {
                     </p>
                   </div>
                   <Badge variant={profile.id === selectedProfile.id ? "default" : "outline"}>
-                    {profile.id === selectedProfile.id ? "Selected" : "Library"}
+                    {profile.id === selectedProfile.id ? "已選取" : "資料庫"}
                   </Badge>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Button variant="secondary" size="sm" onClick={() => editProfile(profile)}>
-                    Edit
+                    編輯
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => exportJson(profile)}>
-                    Export
+                    匯出
                   </Button>
                   <Button variant="outline" size="sm" onClick={() => deleteProfile(profile.id)}>
-                    Delete
+                    刪除
                   </Button>
                 </div>
               </article>
