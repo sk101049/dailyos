@@ -109,6 +109,13 @@ type CreatorProject = {
   status: string;
 };
 
+type ProviderStatus = {
+  id: string;
+  label: string;
+  available: boolean;
+  configured: boolean;
+};
+
 const SCRIPT_KEY = "dailyos-script-library";
 const CHARACTER_KEY = "dailyos-character-library";
 const VOICE_KEY = "dailyos-voice-library";
@@ -168,6 +175,7 @@ export function DashboardPage() {
   const [activeProject, setActiveProject] = useState<CreatorProject | null>(null);
   const [renderJobs, setRenderJobs] = useState<RenderJob[]>([]);
   const [renderedVideos, setRenderedVideos] = useState<RenderedVideo[]>([]);
+  const [providerStatuses, setProviderStatuses] = useState<ProviderStatus[]>([]);
   const [projectTitle, setProjectTitle] = useState("今日創作專案");
   const [scriptId, setScriptId] = useState("");
   const [characterId, setCharacterId] = useState("");
@@ -200,6 +208,7 @@ export function DashboardPage() {
     setCharacterId(project?.defaultCharacterId ?? loadedPackages[0]?.character?.id ?? loadedCharacters[0]?.id ?? "");
     setVoiceId(project?.defaultVoiceId ?? loadedPackages[0]?.voice?.id ?? loadedVoices[0]?.id ?? "");
     setProvider(project?.defaultVideoProvider ?? loadedPackages[0]?.provider ?? "Gemini");
+    void loadProviderStatuses();
   }, []);
 
   useEffect(() => {
@@ -250,6 +259,16 @@ export function DashboardPage() {
   const recentRenderJobs = renderJobs.slice(0, 5);
   const recentCompletedVideos = renderedVideos.slice(0, 5);
   const recentFailedRenders = renderJobs.filter((job) => job.status === "失敗").slice(0, 5);
+
+  async function loadProviderStatuses() {
+    try {
+      const response = await fetch("/api/video-providers");
+      const payload = (await response.json()) as { providers?: ProviderStatus[] };
+      setProviderStatuses(Array.isArray(payload.providers) ? payload.providers : []);
+    } catch {
+      setProviderStatuses([]);
+    }
+  }
 
   function savePackage() {
     const next = [productionPackage, ...packages];
@@ -324,6 +343,29 @@ export function DashboardPage() {
               )}
               <Button asChild variant="outline" size="sm">
                 <Link href="/assets">開啟素材庫</Link>
+              </Button>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>服務狀態</CardTitle>
+              <CardDescription>影片生成服務可用性</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {providerStatuses.length === 0 ? (
+                <p className="text-sm text-muted-foreground">尚未取得服務狀態。</p>
+              ) : (
+                providerStatuses.slice(0, 5).map((item) => (
+                  <div key={item.id} className="flex items-center justify-between gap-3 text-sm">
+                    <span className="font-medium">{item.label}</span>
+                    <span className="text-muted-foreground">
+                      {item.available ? "● 可用" : item.configured ? "● 已設定" : "○ 尚未設定"}
+                    </span>
+                  </div>
+                ))
+              )}
+              <Button variant="outline" size="sm" onClick={loadProviderStatuses}>
+                重新檢查
               </Button>
             </CardContent>
           </Card>

@@ -26,9 +26,12 @@ export function RenderQueuePage() {
   }, []);
 
   const grouped = useMemo(
-    () => renderStatuses.map((status) => ({
-      status,
-      jobs: jobs.filter((job) => job.status === status)
+    () => Array.from(new Set(jobs.map((job) => job.provider))).map((provider) => ({
+      provider,
+      statuses: renderStatuses.map((status) => ({
+        status,
+        jobs: jobs.filter((job) => job.provider === provider && job.status === status)
+      }))
     })),
     [jobs]
   );
@@ -178,7 +181,7 @@ export function RenderQueuePage() {
           <p className="text-sm font-medium text-primary">生成佇列</p>
           <h2 className="mt-2 text-3xl font-semibold tracking-normal">生成佇列</h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-            管理所有 AI 影片生成工作。Gemini 工作者需手動執行，不啟動背景服務。
+            管理所有 AI 影片生成工作。可混合 Gemini / Veo 與 OpenMontage，不啟動背景服務。
           </p>
         </div>
         <Button onClick={() => runGeminiWorker()} disabled={isWorking || !nextGeminiJob}>
@@ -193,16 +196,26 @@ export function RenderQueuePage() {
       ) : null}
 
       <div className="space-y-3">
-        {grouped.map((group) => (
-          <details key={group.status} open className="rounded-lg border bg-card">
-            <summary className="cursor-pointer px-5 py-4 text-sm font-semibold">
-              {group.status}（{group.jobs.length}）
-            </summary>
-            <div className="space-y-3 border-t p-5">
-              {group.jobs.length === 0 ? (
-                <p className="text-sm text-muted-foreground">目前沒有生成工作。</p>
-              ) : (
-                group.jobs.map((job) => (
+        {grouped.length === 0 ? (
+          <Card>
+            <CardContent className="p-5 text-sm text-muted-foreground">
+              目前沒有生成工作。
+            </CardContent>
+          </Card>
+        ) : (
+          grouped.map((providerGroup) => (
+            <details key={providerGroup.provider} open className="rounded-lg border bg-card">
+              <summary className="cursor-pointer px-5 py-4 text-sm font-semibold">
+                {providerGroup.provider}（{providerGroup.statuses.reduce((total, group) => total + group.jobs.length, 0)}）
+              </summary>
+              <div className="space-y-3 border-t p-5">
+                {providerGroup.statuses.map((group) => group.jobs.length ? (
+                  <details key={group.status} open className="rounded-md border bg-background">
+                    <summary className="cursor-pointer px-4 py-3 text-sm font-medium">
+                      {group.status}（{group.jobs.length}）
+                    </summary>
+                    <div className="space-y-3 border-t p-3">
+                      {group.jobs.map((job) => (
                   <Card key={job.id} className="shadow-none">
                     <CardHeader>
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -256,11 +269,14 @@ export function RenderQueuePage() {
                       </details>
                     </CardContent>
                   </Card>
-                ))
-              )}
-            </div>
-          </details>
-        ))}
+                      ))}
+                    </div>
+                  </details>
+                ) : null)}
+              </div>
+            </details>
+          ))
+        )}
       </div>
     </div>
   );

@@ -170,16 +170,27 @@ export async function getGeminiOperation(operationName: string): Promise<GeminiO
 
 export const geminiVideoProvider: VideoProviderAdapter = {
   id: "gemini",
-  label: "Gemini / Google AI Studio",
+  label: "Gemini / Veo",
   envVars,
   getStatus(): VideoProviderStatus {
     const configured = hasGeminiKey();
 
     return {
       id: "gemini",
-      label: "Gemini / Google AI Studio",
+      label: "Gemini / Veo",
       installed: true,
       configured,
+      available: configured,
+      capabilities: {
+        textToVideo: true,
+        imageToVideo: true,
+        multiImageCharacter: true,
+        longVideo: false,
+        voiceover: false,
+        subtitles: false,
+        localRender: false,
+        cloudRender: true
+      },
       envVars,
       missingEnvVars: configured ? [] : envVars,
       manualWorkflow: true,
