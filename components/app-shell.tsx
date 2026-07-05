@@ -8,6 +8,7 @@ import { messages } from "@/messages/zh-TW";
 
 const navItems = [
   { href: "/dashboard", label: messages.navigation.dashboard, marker: "D" },
+  { href: "/projects", label: "Project Studio", marker: "J" },
   { href: "/content", label: messages.navigation.content, marker: "C" },
   { href: "/character", label: "Character Studio", marker: "H" },
   { href: "/voice", label: "Voice Studio", marker: "V" },

@@ -83,12 +83,30 @@ type ProductionPackage = {
   };
 };
 
+type CreatorProject = {
+  id: string;
+  name: string;
+  description: string;
+  brand: string;
+  defaultCharacterId: string;
+  defaultVoiceId: string;
+  defaultVideoProvider: string;
+  scriptIds: string[];
+  storyboardIds: string[];
+  videoIds: string[];
+  calendarItemIds: string[];
+  publishingItemIds: string[];
+  status: string;
+};
+
 const SCRIPT_KEY = "dailyos-script-library";
 const CHARACTER_KEY = "dailyos-character-library";
 const VOICE_KEY = "dailyos-voice-library";
 const STORYBOARD_KEY = "dailyos-storyboard-v2";
 const PACKAGE_KEY = "dailyos-video-packages";
 const PROJECT_KEY = "dailyos-creator-dashboard-project";
+const PROJECTS_KEY = "dailyos-projects";
+const ACTIVE_PROJECT_KEY = "dailyos-active-project-id";
 const CALENDAR_KEY = "dailyos-content-calendar";
 const PUBLISHING_KEY = "dailyos-publishing-center";
 
@@ -136,6 +154,7 @@ export function DashboardPage() {
   const [packages, setPackages] = useState<ProductionPackage[]>([]);
   const [tasks, setTasks] = useState<ContentTask[]>(initialTasks);
   const [publishing, setPublishing] = useState<PublishingItem[]>(initialPublishing);
+  const [activeProject, setActiveProject] = useState<CreatorProject | null>(null);
   const [projectTitle, setProjectTitle] = useState("DailyOS Creator Project");
   const [scriptId, setScriptId] = useState("");
   const [characterId, setCharacterId] = useState("");
@@ -149,6 +168,9 @@ export function DashboardPage() {
     const loadedVoices = readArray<VoiceAsset>(VOICE_KEY);
     const loadedStoryboard = readArray<StoryboardScene>(STORYBOARD_KEY);
     const loadedPackages = readArray<ProductionPackage>(PACKAGE_KEY);
+    const loadedProjects = readArray<CreatorProject>(PROJECTS_KEY);
+    const activeProjectId = window.localStorage.getItem(ACTIVE_PROJECT_KEY) ?? "";
+    const project = loadedProjects.find((item) => item.id === activeProjectId) ?? null;
 
     setScripts(loadedScripts);
     setCharacters(loadedCharacters);
@@ -157,11 +179,12 @@ export function DashboardPage() {
     setPackages(loadedPackages);
     setTasks(readArray<ContentTask>(CALENDAR_KEY, initialTasks));
     setPublishing(readArray<PublishingItem>(PUBLISHING_KEY, initialPublishing));
-    setProjectTitle(window.localStorage.getItem(PROJECT_KEY) ?? loadedPackages[0]?.title ?? "DailyOS Creator Project");
-    setScriptId(loadedPackages[0]?.script?.id ?? loadedScripts[0]?.id ?? "");
-    setCharacterId(loadedPackages[0]?.character?.id ?? loadedCharacters[0]?.id ?? "");
-    setVoiceId(loadedPackages[0]?.voice?.id ?? loadedVoices[0]?.id ?? "");
-    setProvider(loadedPackages[0]?.provider ?? "Gemini");
+    setActiveProject(project);
+    setProjectTitle(project?.name ?? window.localStorage.getItem(PROJECT_KEY) ?? loadedPackages[0]?.title ?? "DailyOS Creator Project");
+    setScriptId(project?.scriptIds[0] ?? loadedPackages[0]?.script?.id ?? loadedScripts[0]?.id ?? "");
+    setCharacterId(project?.defaultCharacterId ?? loadedPackages[0]?.character?.id ?? loadedCharacters[0]?.id ?? "");
+    setVoiceId(project?.defaultVoiceId ?? loadedPackages[0]?.voice?.id ?? loadedVoices[0]?.id ?? "");
+    setProvider(project?.defaultVideoProvider ?? loadedPackages[0]?.provider ?? "Gemini");
   }, []);
 
   useEffect(() => {
@@ -377,6 +400,8 @@ export function DashboardPage() {
             <CardDescription>從最近的本機 production package 繼續。</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
+            <SummaryRow label="Active project" value={activeProject?.name ?? "未選擇"} />
+            <SummaryRow label="Brand" value={activeProject?.brand ?? "未設定"} />
             <SummaryRow label="專案" value={packages[0]?.title ?? projectTitle} />
             <SummaryRow label="腳本" value={productionPackage.script?.title ?? "未選擇"} />
             <SummaryRow label="人物" value={productionPackage.character?.name ?? "未選擇"} />
