@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "DailyOS",
-  description: "保險內容創作與每日工作空間"
+  description: "AI-powered daily workspace for insurance content operations."
 };
 
 export default function RootLayout({

@@ -4,87 +4,95 @@
 
 @layer base {
   :root {
-    --background: 210 20% 98%;
-    --foreground: 215 25% 16%;
+    --background: 210 40% 98%;
+    --foreground: 225 24% 16%;
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 16%;
-    --primary: 172 66% 30%;
+    --card-foreground: 225 24% 16%;
+    --primary: 243 100% 69%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 210 18% 92%;
-    --secondary-foreground: 215 25% 18%;
-    --muted: 210 18% 94%;
-    --muted-foreground: 215 12% 43%;
-    --accent: 34 88% 55%;
-    --accent-foreground: 215 25% 16%;
-    --border: 214 20% 88%;
-    --input: 214 20% 88%;
-    --ring: 172 66% 30%;
-    --radius: 0.85rem;
-    --app-gradient: linear-gradient(135deg, #ff7a59 0%, #ffd166 44%, #4ecdc4 100%);
-    --app-soft-bg: radial-gradient(circle at top left, rgba(255, 122, 89, 0.18), transparent 30%),
-      radial-gradient(circle at top right, rgba(78, 205, 196, 0.18), transparent 28%),
-      hsl(var(--background));
-    --app-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+    --secondary: 217 91% 60%;
+    --secondary-foreground: 0 0% 100%;
+    --muted: 220 24% 94%;
+    --muted-foreground: 225 10% 45%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 225 24% 16%;
+    --border: 220 24% 88%;
+    --input: 220 24% 88%;
+    --ring: 243 100% 69%;
+    --radius: 1rem;
+    --app-primary: #6c63ff;
+    --app-secondary: #3b82f6;
+    --app-accent: #f59e0b;
+    --app-bg: #f8fafc;
+    --app-gradient: linear-gradient(135deg, #6c63ff 0%, #3b82f6 48%, #f59e0b 100%);
+    --app-soft-bg:
+      radial-gradient(circle at 18% 12%, rgba(245, 158, 11, 0.18), transparent 24%),
+      radial-gradient(circle at 82% 18%, rgba(108, 99, 255, 0.16), transparent 26%),
+      linear-gradient(180deg, #f8fafc 0%, #eef4ff 100%);
+    --app-shadow: 0 20px 50px rgba(52, 65, 120, 0.12);
+  }
+
+  :root[data-theme="sunrise"] {
+    --app-gradient: linear-gradient(135deg, #ff8a5b 0%, #f59e0b 46%, #6c63ff 100%);
   }
 
   :root[data-theme="aurora"] {
-    --primary: 252 82% 61%;
-    --ring: 252 82% 61%;
-    --accent: 187 70% 47%;
-    --app-gradient: linear-gradient(135deg, #6c63ff 0%, #4ecdc4 48%, #ff8fa3 100%);
-    --app-soft-bg: radial-gradient(circle at top left, rgba(108, 99, 255, 0.18), transparent 30%),
-      radial-gradient(circle at top right, rgba(255, 143, 163, 0.18), transparent 28%),
-      hsl(var(--background));
+    --primary: 265 89% 66%;
+    --ring: 265 89% 66%;
+    --app-gradient: linear-gradient(135deg, #6c63ff 0%, #14b8a6 48%, #ec4899 100%);
+    --app-soft-bg:
+      radial-gradient(circle at 18% 12%, rgba(236, 72, 153, 0.14), transparent 24%),
+      radial-gradient(circle at 82% 18%, rgba(20, 184, 166, 0.16), transparent 26%),
+      linear-gradient(180deg, #f8fafc 0%, #f3f0ff 100%);
   }
 
   :root[data-theme="forest"] {
-    --primary: 151 55% 34%;
-    --ring: 151 55% 34%;
-    --accent: 42 86% 56%;
-    --app-gradient: linear-gradient(135deg, #2f9e44 0%, #94d82d 48%, #ffd43b 100%);
-    --app-soft-bg: radial-gradient(circle at top left, rgba(47, 158, 68, 0.16), transparent 30%),
-      radial-gradient(circle at top right, rgba(255, 212, 59, 0.18), transparent 28%),
-      hsl(var(--background));
+    --primary: 151 55% 36%;
+    --ring: 151 55% 36%;
+    --app-gradient: linear-gradient(135deg, #16a34a 0%, #22c55e 45%, #f59e0b 100%);
+    --app-soft-bg:
+      radial-gradient(circle at 18% 12%, rgba(34, 197, 94, 0.15), transparent 24%),
+      radial-gradient(circle at 82% 18%, rgba(245, 158, 11, 0.14), transparent 26%),
+      linear-gradient(180deg, #f8fafc 0%, #effaf4 100%);
   }
 
   :root[data-theme="light"] {
-    --primary: 218 80% 52%;
-    --ring: 218 80% 52%;
-    --accent: 34 88% 55%;
-    --app-gradient: linear-gradient(135deg, #3b82f6 0%, #22c55e 50%, #f59e0b 100%);
-    --app-soft-bg: radial-gradient(circle at top left, rgba(59, 130, 246, 0.14), transparent 30%),
-      radial-gradient(circle at top right, rgba(34, 197, 94, 0.14), transparent 28%),
-      hsl(var(--background));
+    --app-gradient: linear-gradient(135deg, #6c63ff 0%, #3b82f6 48%, #f59e0b 100%);
   }
 
   :root[data-theme="dark"] {
-    --background: 222 47% 8%;
+    --background: 225 36% 8%;
     --foreground: 210 40% 96%;
-    --card: 222 40% 12%;
+    --card: 225 32% 12%;
     --card-foreground: 210 40% 96%;
-    --primary: 188 78% 50%;
-    --primary-foreground: 222 47% 8%;
-    --secondary: 222 32% 18%;
-    --secondary-foreground: 210 40% 96%;
-    --muted: 222 32% 18%;
-    --muted-foreground: 215 20% 72%;
-    --accent: 34 88% 60%;
-    --accent-foreground: 222 47% 8%;
-    --border: 222 28% 22%;
-    --input: 222 28% 22%;
-    --ring: 188 78% 50%;
-    --app-gradient: linear-gradient(135deg, #22d3ee 0%, #a78bfa 50%, #fb7185 100%);
-    --app-soft-bg: radial-gradient(circle at top left, rgba(34, 211, 238, 0.18), transparent 30%),
-      radial-gradient(circle at top right, rgba(251, 113, 133, 0.16), transparent 28%),
-      hsl(var(--background));
-    --app-shadow: 0 18px 45px rgba(0, 0, 0, 0.28);
+    --primary: 243 100% 74%;
+    --primary-foreground: 225 36% 8%;
+    --secondary: 217 91% 64%;
+    --secondary-foreground: 225 36% 8%;
+    --muted: 225 24% 18%;
+    --muted-foreground: 220 16% 74%;
+    --accent: 38 92% 56%;
+    --accent-foreground: 225 36% 8%;
+    --border: 225 24% 22%;
+    --input: 225 24% 22%;
+    --ring: 243 100% 74%;
+    --app-soft-bg:
+      radial-gradient(circle at 18% 12%, rgba(245, 158, 11, 0.14), transparent 24%),
+      radial-gradient(circle at 82% 18%, rgba(108, 99, 255, 0.2), transparent 26%),
+      linear-gradient(180deg, #0f172a 0%, #111827 100%);
+    --app-shadow: 0 20px 50px rgba(0, 0, 0, 0.32);
   }
 
   * {
     @apply border-border;
   }
 
+  html {
+    background: hsl(var(--background));
+  }
+
   body {
+    min-height: 100vh;
     background: var(--app-soft-bg);
     @apply text-foreground antialiased;
   }
@@ -92,8 +100,22 @@
 
 @layer components {
   .v1-card {
-    border-radius: 1rem;
+    border-radius: 1.35rem;
+    border: 1px solid rgba(255, 255, 255, 0.68);
+    background: rgba(255, 255, 255, 0.76);
     box-shadow: var(--app-shadow);
+    backdrop-filter: blur(18px);
+    transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+  }
+
+  [data-theme="dark"] .v1-card {
+    background: rgba(15, 23, 42, 0.74);
+    border-color: rgba(148, 163, 184, 0.18);
+  }
+
+  .v1-card:hover {
+    transform: translateY(-3px) scale(1.01);
+    box-shadow: 0 26px 70px rgba(52, 65, 120, 0.16);
   }
 
   .v1-gradient {
@@ -103,23 +125,74 @@
   .v1-gradient-button {
     background: var(--app-gradient);
     color: white;
-    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16);
+    box-shadow: 0 14px 30px rgba(108, 99, 255, 0.28);
   }
 
   .v1-gradient-button:hover {
     color: white;
-    filter: brightness(0.98);
+    filter: brightness(1.02);
   }
 
   .v1-active-nav {
     background: var(--app-gradient);
     color: white;
-    box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+    box-shadow: 0 14px 30px rgba(108, 99, 255, 0.24);
   }
 
-  .v1-hero {
-    background: var(--app-gradient);
-    border-radius: 1.25rem;
-    box-shadow: var(--app-shadow);
+  .v1-page {
+    animation: page-in 260ms ease both;
+  }
+
+  .v1-count {
+    animation: count-pop 520ms ease both;
+  }
+
+  .v1-skeleton {
+    background: linear-gradient(90deg, rgba(148, 163, 184, 0.16), rgba(255, 255, 255, 0.55), rgba(148, 163, 184, 0.16));
+    background-size: 220% 100%;
+    animation: skeleton-sweep 1.4s ease-in-out infinite;
+  }
+
+  .v1-toast {
+    animation: toast-in 220ms ease both;
+  }
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes count-pop {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes skeleton-sweep {
+  to {
+    background-position: -220% 0;
+  }
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
   }
 }
