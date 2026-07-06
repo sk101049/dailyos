@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import type React from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Bell,
   Bot,
@@ -26,177 +26,109 @@ import { IssueReportButton } from "@/components/issue-report-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DEMO_SEEDED_KEY, readIssueReports } from "@/lib/beta-validation";
-import { readRenderQueue, type RenderJob } from "@/lib/render-queue";
+import {
+  dashboardThemes,
+  loadDashboardData,
+  writeDashboardTheme,
+  type DashboardData,
+  type DashboardIconKey,
+  type DashboardTheme
+} from "@/features/dashboard/dashboard-data";
 
 type Icon = React.ComponentType<{ className?: string }>;
+type LoadState = "loading" | "ready" | "error";
 
-type ContentTask = {
-  id: string;
-  title: string;
-  platform: string;
-  status: string;
-  publishDate: string;
+const iconMap: Record<DashboardIconKey, Icon> = {
+  bot: Bot,
+  check: CheckCircle2,
+  folder: FolderKanban,
+  health: HeartPulse,
+  library: LibraryBig,
+  list: ListChecks,
+  megaphone: Megaphone,
+  plus: Plus,
+  rocket: Rocket,
+  shield: ShieldCheck,
+  sparkles: Sparkles,
+  trending: TrendingUp,
+  video: Video
 };
-
-type WeeklyPlanItem = {
-  id: string;
-  dateLabel: string;
-  title: string;
-  category: string;
-  status: string;
-};
-
-type CreatorProject = {
-  id: string;
-  name: string;
-  description?: string;
-  brand?: string;
-  status?: string;
-  updatedAt?: string;
-};
-
-type RenderedVideo = {
-  id: string;
-  title?: string;
-  name?: string;
-  fileName: string;
-  projectName: string;
-  importedAt: string;
-};
-
-type ProviderStatus = {
-  id: string;
-  label: string;
-  available: boolean;
-  configured: boolean;
-};
-
-const THEME_KEY = "dailyos-theme";
-const TASKS_KEY = "dailyos-content-calendar";
-const PROJECTS_KEY = "dailyos-projects";
-const RENDERED_VIDEO_KEY = "dailyos-rendered-videos";
-const WEEKLY_PLAN_KEY = "dailyos-weekly-production-plan";
-const BRAND_KEY = "dailyos-brand-library";
-const WORKFLOW_KEY = "dailyos-workflow-templates";
-const ASSET_KEYS = [
-  "dailyos-script-library",
-  "dailyos-character-library",
-  "dailyos-voice-library",
-  "dailyos-storyboard-v2",
-  "dailyos-video-packages"
-];
-
-const today = new Date().toISOString().slice(0, 10);
-
-const themes = ["Sunrise", "Aurora", "Forest", "Light", "Dark"];
-
-const fallbackTasks: ContentTask[] = [
-  { id: "task-script", title: "完成今天的短影音腳本", platform: "DailyOS", status: "待處理", publishDate: today },
-  { id: "task-follow-up", title: "追蹤 3 位潛在客戶", platform: "CRM", status: "待處理", publishDate: today },
-  { id: "task-appointment", title: "準備明天的預約內容", platform: "行事曆", status: "待確認", publishDate: today }
-];
-
-const fallbackWeeklyPlan: WeeklyPlanItem[] = [
-  { id: "plan-ai", dateLabel: "今天", title: "AI Shorts", category: "AI", status: "待腳本" },
-  { id: "plan-insurance", dateLabel: "週三", title: "保險觀念短片", category: "保險", status: "待生成" },
-  { id: "plan-faq", dateLabel: "週五", title: "房貸 FAQ", category: "房地產", status: "待發布" }
-];
-
-function readArray<T>(key: string, fallback: T[] = []) {
-  try {
-    const saved = window.localStorage.getItem(key);
-    const parsed = saved ? (JSON.parse(saved) as T[]) : fallback;
-    return Array.isArray(parsed) ? parsed : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function formatDate(value?: string) {
-  if (!value) return "尚未更新";
-  try {
-    return new Intl.DateTimeFormat("zh-TW", {
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit"
-    }).format(new Date(value));
-  } catch {
-    return value;
-  }
-}
 
 export function DashboardPage() {
-  const [theme, setTheme] = useState("Sunrise");
   const [toast, setToast] = useState("");
-  const [tasks, setTasks] = useState<ContentTask[]>(fallbackTasks);
-  const [weeklyPlan, setWeeklyPlan] = useState<WeeklyPlanItem[]>(fallbackWeeklyPlan);
-  const [renderJobs, setRenderJobs] = useState<RenderJob[]>([]);
-  const [projects, setProjects] = useState<CreatorProject[]>([]);
-  const [renderedVideos, setRenderedVideos] = useState<RenderedVideo[]>([]);
-  const [providerStatuses, setProviderStatuses] = useState<ProviderStatus[]>([]);
-  const [brandCount, setBrandCount] = useState(0);
-  const [workflowCount, setWorkflowCount] = useState(0);
-  const [assetCount, setAssetCount] = useState(0);
-  const [demoSeeded, setDemoSeeded] = useState(false);
-  const [issueReportCount, setIssueReportCount] = useState(0);
+  const [loadState, setLoadState] = useState<LoadState>("loading");
+  const [error, setError] = useState("");
+  const [dashboard, setDashboard] = useState<DashboardData | null>(null);
 
   useEffect(() => {
-    const savedTheme = window.localStorage.getItem(THEME_KEY) ?? "sunrise";
-    setTheme(labelTheme(savedTheme));
-    setTasks(readArray<ContentTask>(TASKS_KEY, fallbackTasks));
-    setWeeklyPlan(readArray<WeeklyPlanItem>(WEEKLY_PLAN_KEY, fallbackWeeklyPlan));
-    setRenderJobs(readRenderQueue());
-    setProjects(readArray<CreatorProject>(PROJECTS_KEY));
-    setRenderedVideos(readArray<RenderedVideo>(RENDERED_VIDEO_KEY));
-    setBrandCount(readArray<unknown>(BRAND_KEY).length);
-    setWorkflowCount(readArray<unknown>(WORKFLOW_KEY).length);
-    setAssetCount(ASSET_KEYS.reduce((total, key) => total + readArray<unknown>(key).length, 0));
-    setDemoSeeded(Boolean(window.localStorage.getItem(DEMO_SEEDED_KEY)));
-    setIssueReportCount(readIssueReports().length);
-    void loadProviderStatuses();
+    void refreshDashboard();
   }, []);
 
-  const todayTasks = tasks.filter((task) => task.publishDate === today);
-  const visibleTasks = todayTasks.length ? todayTasks : tasks;
-  const recentJobs = renderJobs.slice(0, 5);
-  const recentProjects = projects.slice(0, 4);
-  const completedVideos = renderedVideos.slice(0, 5);
-  const monthPublished = completedVideos.length;
-  const providerOnline = providerStatuses.filter((item) => item.available).length;
-
-  const kpis = useMemo(
-    () => [
-      { label: "進行中專案", value: projects.length, detail: "目前內容專案", icon: FolderKanban, tone: "from-indigo-500 to-violet-500" },
-      { label: "今日任務", value: visibleTasks.length, detail: "待處理與待確認", icon: ListChecks, tone: "from-sky-500 to-blue-500" },
-      { label: "生成影片", value: renderJobs.length, detail: "Render Queue 工作", icon: Video, tone: "from-amber-400 to-orange-500" },
-      { label: "本月發布", value: monthPublished, detail: "完成影片資產", icon: Megaphone, tone: "from-emerald-500 to-teal-500" },
-      { label: "素材數", value: assetCount, detail: "腳本、人物、配音、分鏡", icon: LibraryBig, tone: "from-pink-500 to-rose-500" }
-    ],
-    [assetCount, monthPublished, projects.length, renderJobs.length, visibleTasks.length]
-  );
-
-  function changeTheme(nextTheme: string) {
-    setTheme(nextTheme);
-    const value = nextTheme.toLowerCase();
-    window.localStorage.setItem(THEME_KEY, value);
-    document.documentElement.dataset.theme = value;
+  async function refreshDashboard() {
+    try {
+      setLoadState("loading");
+      setError("");
+      setDashboard(await loadDashboardData());
+      setLoadState("ready");
+    } catch (caught) {
+      setLoadState("error");
+      setError(caught instanceof Error ? caught.message : "儀表板資料載入失敗");
+    }
   }
 
-  async function loadProviderStatuses() {
-    try {
-      const response = await fetch("/api/video-providers");
-      const payload = (await response.json()) as { providers?: ProviderStatus[] };
-      setProviderStatuses(Array.isArray(payload.providers) ? payload.providers : []);
-    } catch {
-      setProviderStatuses([]);
-    }
+  function changeTheme(nextTheme: DashboardTheme) {
+    writeDashboardTheme(nextTheme);
+    setDashboard((current) => current ? { ...current, theme: nextTheme } : current);
   }
 
   function showToast(message: string) {
     setToast(message);
     window.setTimeout(() => setToast(""), 2200);
+  }
+
+  if (loadState === "error") {
+    return (
+      <div className="space-y-6">
+        <DashboardHero
+          theme="Sunrise"
+          onThemeChange={changeTheme}
+          onNotify={() => showToast("目前沒有新通知")}
+        />
+        <Card className="v1-card">
+          <CardContent className="space-y-4 p-6">
+            <p className="text-lg font-semibold">儀表板資料載入失敗</p>
+            <p className="text-sm text-muted-foreground">{error}</p>
+            <Button className="v1-gradient-button rounded-2xl" onClick={refreshDashboard}>
+              重新載入
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (loadState === "loading" || !dashboard) {
+    return (
+      <div className="space-y-6">
+        <DashboardHero
+          theme="Sunrise"
+          onThemeChange={changeTheme}
+          onNotify={() => showToast("目前沒有新通知")}
+        />
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <Card key={index} className="v1-card overflow-hidden">
+              <CardContent className="p-5">
+                <div className="v1-skeleton h-12 w-12 rounded-2xl" />
+                <div className="v1-skeleton mt-5 h-3 w-24 rounded-full" />
+                <div className="v1-skeleton mt-3 h-9 w-16 rounded-full" />
+                <div className="v1-skeleton mt-3 h-3 w-32 rounded-full" />
+              </CardContent>
+            </Card>
+          ))}
+        </section>
+      </div>
+    );
   }
 
   return (
@@ -207,70 +139,37 @@ export function DashboardPage() {
         </div>
       ) : null}
 
-      <header className="relative overflow-hidden rounded-[2rem] border border-white/70 bg-white/70 p-6 shadow-2xl backdrop-blur-2xl">
-        <HeroArt />
-        <div className="relative z-10 grid gap-6 xl:grid-cols-[minmax(0,1fr)_560px] xl:items-start">
-          <div className="pt-4">
-            <p className="text-sm font-semibold text-primary">早安，DailyOS 使用者</p>
-            <h1 className="mt-2 max-w-2xl text-3xl font-bold tracking-normal text-slate-900 sm:text-5xl">
-              今天也是創造精彩內容的一天
-            </h1>
-            <p className="mt-4 max-w-xl text-sm leading-6 text-slate-600">
-              整合 AI Director、Video Studio、Gemini、OpenMontage 與 DailyOS 工作流，快速掌握今天的創作狀態。
-            </p>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto_auto_auto]">
-            <label className="flex h-12 items-center gap-3 rounded-2xl border bg-white/80 px-4 shadow-sm backdrop-blur">
-              <Search className="h-5 w-5 text-muted-foreground" />
-              <input
-                className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
-                placeholder="搜尋專案、素材或 Render Job"
-              />
-            </label>
-            <Button asChild className="v1-gradient-button h-12 rounded-2xl px-5">
-              <Link href="/director">
-                <Plus className="h-4 w-4" />
-                快速創作
-              </Link>
-            </Button>
-            <Button variant="outline" size="icon" className="h-12 w-12 rounded-2xl bg-white/80" onClick={() => showToast("目前沒有新通知")}>
-              <Bell className="h-5 w-5" />
-            </Button>
-            <Button variant="outline" size="icon" className="h-12 w-12 rounded-2xl bg-white/80">
-              <UserRound className="h-5 w-5" />
-            </Button>
-            <select
-              value={theme}
-              onChange={(event) => changeTheme(event.target.value)}
-              className="h-12 rounded-2xl border bg-white/80 px-3 text-sm font-medium outline-none"
-              aria-label="Theme"
-            >
-              {themes.map((item) => (
-                <option key={item}>{item}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-      </header>
+      <DashboardHero
+        theme={dashboard.theme}
+        onThemeChange={changeTheme}
+        onNotify={() => showToast("目前沒有新通知")}
+      />
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-        {kpis.map((item) => (
-          <KpiCard key={item.label} {...item} />
+        {dashboard.kpis.map((item) => (
+          <KpiCard key={item.label} {...item} icon={iconMap[item.icon]} />
         ))}
       </section>
 
       <section className="grid gap-4 xl:grid-cols-[1fr_1fr_360px]">
         <Panel title="今日任務" action="查看全部" href="/calendar">
-          {visibleTasks.slice(0, 4).map((task) => (
-            <ListRow key={task.id} icon={CheckCircle2} title={task.title} detail={`${task.platform} · ${task.publishDate}`} status={task.status} />
-          ))}
+          {dashboard.todayTasks.length ? (
+            dashboard.todayTasks.map((task) => (
+              <ListRow key={task.id} {...task} icon={iconMap[task.icon]} />
+            ))
+          ) : (
+            <EmptyState text="今天沒有待處理任務。" />
+          )}
         </Panel>
 
         <Panel title="本週創作計畫" action="查看 Workflow" href="/workflow">
-          {(weeklyPlan.length ? weeklyPlan : fallbackWeeklyPlan).slice(0, 4).map((item) => (
-            <ListRow key={item.id} icon={Clapperboard} title={item.title} detail={`${item.dateLabel} · ${item.category}`} status={item.status} />
-          ))}
+          {dashboard.weeklyPlan.length ? (
+            dashboard.weeklyPlan.map((item) => (
+              <ListRow key={item.id} {...item} icon={iconMap[item.icon]} />
+            ))
+          ) : (
+            <EmptyState text="尚未建立本週創作計畫。" />
+          )}
         </Panel>
 
         <Card className="v1-card overflow-hidden">
@@ -284,12 +183,16 @@ export function DashboardPage() {
             <RobotArt />
             <div className="space-y-2">
               <p className="text-sm font-semibold">今天建議</p>
-              {["ChatGPT Shorts", "Gemini 教學", "房貸 FAQ"].map((item) => (
-                <div key={item} className="flex items-center gap-2 rounded-2xl bg-white/72 px-3 py-2 text-sm">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  {item}
-                </div>
-              ))}
+              {dashboard.assistantSuggestions.length ? (
+                dashboard.assistantSuggestions.map((item) => (
+                  <div key={item} className="flex items-center gap-2 rounded-2xl bg-white/72 px-3 py-2 text-sm">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                    {item}
+                  </div>
+                ))
+              ) : (
+                <EmptyState text="目前沒有 AI 建議。" />
+              )}
             </div>
             <Button asChild className="v1-gradient-button w-full rounded-2xl">
               <Link href="/director">開始創作</Link>
@@ -300,15 +203,9 @@ export function DashboardPage() {
 
       <section className="grid gap-4 xl:grid-cols-3">
         <Panel title="最近專案" action="前往專案" href="/projects">
-          {recentProjects.length ? (
-            recentProjects.map((project) => (
-              <ListRow
-                key={project.id}
-                icon={FolderKanban}
-                title={project.name}
-                detail={`${project.brand || "未套用品牌"} · ${formatDate(project.updatedAt)}`}
-                status={project.status || "草稿"}
-              />
+          {dashboard.recentProjects.length ? (
+            dashboard.recentProjects.map((project) => (
+              <ListRow key={project.id} {...project} icon={iconMap[project.icon]} />
             ))
           ) : (
             <EmptyState text="尚未建立專案，從 AI Director 開始即可。" />
@@ -316,9 +213,9 @@ export function DashboardPage() {
         </Panel>
 
         <Panel title="最近 Render Queue" action="查看佇列" href="/render-queue">
-          {recentJobs.length ? (
-            recentJobs.map((job) => (
-              <ListRow key={job.id} icon={Rocket} title={job.title} detail={`${job.provider} · ${formatDate(job.updatedAt)}`} status={job.status} />
+          {dashboard.renderQueue.length ? (
+            dashboard.renderQueue.map((job) => (
+              <ListRow key={job.id} {...job} icon={iconMap[job.icon]} />
             ))
           ) : (
             <EmptyState text="目前沒有生成工作。" skeleton />
@@ -326,27 +223,79 @@ export function DashboardPage() {
         </Panel>
 
         <Panel title="系統健康" action="回報問題" href="/dashboard">
-          <HealthRow label="Build" value="正常" icon={ShieldCheck} />
-          <HealthRow label="Smoke Test" value={demoSeeded ? "正常" : "待建立 Demo"} icon={HeartPulse} />
-          <HealthRow label="Provider" value={`${providerOnline} 個可用`} icon={Rocket} />
-          <HealthRow label="Workflow" value={`${workflowCount} 個模板`} icon={Sparkles} />
-          <HealthRow label="問題回報" value={`${issueReportCount} 筆`} icon={ListChecks} />
+          {dashboard.health.map((item) => (
+            <HealthRow key={item.id} {...item} icon={iconMap[item.icon]} />
+          ))}
           <IssueReportButton page="Dashboard" />
         </Panel>
       </section>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <QuickStart title="AI 幫我規劃影片" detail="進入 AI Director" href="/director" icon={Bot} tone="from-indigo-500 to-violet-500" />
-        <QuickStart title="查看熱門趨勢" detail="找今天的題材" href="/trends" icon={TrendingUp} tone="from-sky-500 to-blue-500" />
-        <QuickStart title="繼續上次專案" detail="回到專案中心" href="/projects" icon={FolderKanban} tone="from-amber-400 to-orange-500" />
-        <QuickStart title="建立新專案" detail="整理內容資產" href="/projects" icon={Plus} tone="from-emerald-500 to-teal-500" />
+        {dashboard.quickStarts.map((item) => (
+          <QuickStart key={item.title} {...item} icon={iconMap[item.icon]} />
+        ))}
       </section>
     </div>
   );
 }
 
-function labelTheme(value: string) {
-  return value.charAt(0).toUpperCase() + value.slice(1);
+function DashboardHero({
+  theme,
+  onThemeChange,
+  onNotify
+}: {
+  theme: DashboardTheme;
+  onThemeChange: (theme: DashboardTheme) => void;
+  onNotify: () => void;
+}) {
+  return (
+    <header className="relative overflow-hidden rounded-[2rem] border border-white/70 bg-white/70 p-6 shadow-2xl backdrop-blur-2xl">
+      <HeroArt />
+      <div className="relative z-10 grid gap-6 xl:grid-cols-[minmax(0,1fr)_560px] xl:items-start">
+        <div className="pt-4">
+          <p className="text-sm font-semibold text-primary">早安，DailyOS 使用者</p>
+          <h1 className="mt-2 max-w-2xl text-3xl font-bold tracking-normal text-slate-900 sm:text-5xl">
+            今天也是創造精彩內容的一天
+          </h1>
+          <p className="mt-4 max-w-xl text-sm leading-6 text-slate-600">
+            整合 AI Director、Video Studio、Gemini、OpenMontage 與 DailyOS 工作流，快速掌握今天的創作狀態。
+          </p>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto_auto_auto_auto]">
+          <label className="flex h-12 items-center gap-3 rounded-2xl border bg-white/80 px-4 shadow-sm backdrop-blur">
+            <Search className="h-5 w-5 text-muted-foreground" />
+            <input
+              className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+              placeholder="搜尋專案、素材或 Render Job"
+            />
+          </label>
+          <Button asChild className="v1-gradient-button h-12 rounded-2xl px-5">
+            <Link href="/director">
+              <Plus className="h-4 w-4" />
+              快速創作
+            </Link>
+          </Button>
+          <Button variant="outline" size="icon" className="h-12 w-12 rounded-2xl bg-white/80" onClick={onNotify}>
+            <Bell className="h-5 w-5" />
+          </Button>
+          <Button variant="outline" size="icon" className="h-12 w-12 rounded-2xl bg-white/80">
+            <UserRound className="h-5 w-5" />
+          </Button>
+          <select
+            value={theme}
+            onChange={(event) => onThemeChange(event.target.value as DashboardTheme)}
+            className="h-12 rounded-2xl border bg-white/80 px-3 text-sm font-medium outline-none"
+            aria-label="Theme"
+          >
+            {dashboardThemes.map((item) => (
+              <option key={item}>{item}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+    </header>
+  );
 }
 
 function KpiCard({
