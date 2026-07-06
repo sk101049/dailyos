@@ -314,7 +314,7 @@ export function VideoPage() {
         format: `直式短影音，${geminiSettings.aspectRatio}`,
         renderTarget: provider === "OpenMontage" ? "本機 OpenMontage 手動渲染" : "Gemini / Veo 雲端手動生成",
         status: "待檢查",
-        integrations: [`${provider} metadata`, "LocalStorage only", "不啟動背景工作"]
+        integrations: [`${provider} metadata`, "本機資料", "不啟動背景工作"]
       },
       gemini: provider === "Gemini" ? geminiSettings : undefined
     };
@@ -417,7 +417,7 @@ export function VideoPage() {
               選擇腳本、人物、配音、分鏡與影片生成服務，建立同一套 Render Queue 工作。
             </p>
           </div>
-          <Badge variant="secondary" className="w-fit">Provider Beta</Badge>
+          <Badge variant="secondary" className="w-fit">服務測試版</Badge>
         </div>
 
         <Card id="export" className="scroll-mt-24">

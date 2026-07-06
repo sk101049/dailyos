@@ -63,18 +63,18 @@ const CHARACTER_KEY = "dailyos-character-library";
 const VOICE_KEY = "dailyos-voice-library";
 
 const nodeLabels = [
-  "AI Director",
+  "AI 導演",
   "腳本",
   "分鏡",
   "人物模板",
   "配音",
   "品牌",
-  "Render Queue",
+  "生成佇列",
   "Gemini",
   "OpenMontage",
   "審核",
-  "Asset Library",
-  "Publishing"
+  "素材庫",
+  "發布中心"
 ];
 
 const providers = ["Gemini", "OpenMontage", "Runway", "Kling", "Pika", "Hailuo"];
@@ -85,7 +85,7 @@ function defaultNodes(): WorkflowNode[] {
     id: crypto.randomUUID(),
     label,
     enabled: true,
-    requiresApproval: ["AI Director", "審核", "Render Queue", "Publishing"].includes(label),
+    requiresApproval: ["AI 導演", "審核", "生成佇列", "發布中心"].includes(label),
     defaultProvider: label === "OpenMontage" ? "OpenMontage" : "Gemini"
   }));
 }
@@ -127,7 +127,7 @@ export function WorkflowPage() {
   const [weeklyPlan, setWeeklyPlan] = useState<WeeklyPlanItem[]>([]);
   const [message, setMessage] = useState<string | null>(null);
   const [producer, setProducer] = useState({
-    cadence: "每天 3 支 Shorts",
+    cadence: "每天 3 支短影音",
     category: "保險",
     brandId: "",
     characterId: "",
@@ -165,7 +165,7 @@ export function WorkflowPage() {
 
   function saveTemplate() {
     if (!templateName.trim()) {
-      setMessage("請先輸入 Workflow Template 名稱。");
+      setMessage("請先輸入流程模板名稱。");
       return;
     }
 
@@ -184,7 +184,7 @@ export function WorkflowPage() {
     persistTemplates(next);
     setSelectedTemplateId(template.id);
     setProducer((current) => ({ ...current, workflowTemplateId: template.id }));
-    setMessage("Workflow Template 已儲存。");
+    setMessage("流程模板已儲存。");
   }
 
   function loadTemplate(id: string) {
@@ -211,13 +211,13 @@ export function WorkflowPage() {
     const createdPlan: WeeklyPlanItem[] = Array.from({ length: planCount }, (_, index) => {
       const projectId = crypto.randomUUID();
       const renderJobId = crypto.randomUUID();
-      const title = `${producer.category} ${producer.cadence.includes("Shorts") ? "Shorts" : "長影片"} #${index + 1}`;
+      const title = `${producer.category} ${producer.cadence.includes("短影音") ? "短影音" : "長影片"} #${index + 1}`;
       const status = index % 3 === 0 ? "待腳本" : index % 3 === 1 ? "待生成" : "待發布";
       const dateLabel = index < 3 ? "今天" : `本週第 ${Math.floor(index / 3) + 1} 天`;
       const project = {
         id: projectId,
         name: title,
-        description: `AI Producer 建立，${producer.cadence}，${brandName}`,
+        description: `AI 製作人建立，${producer.cadence}，${brandName}`,
         brand: brandName,
         defaultCharacterId: producer.characterId,
         defaultVoiceId: producer.voiceId,
@@ -236,7 +236,7 @@ export function WorkflowPage() {
         projectId,
         title,
         category: producer.category,
-        prompt: `建立 ${title}。品牌：${brandName}。人物：${characterName}。配音：${voiceName}。Workflow：${template?.name ?? "未選擇"}。`,
+        prompt: `建立 ${title}。品牌：${brandName}。人物：${characterName}。配音：${voiceName}。流程：${template?.name ?? "未選擇"}。`,
         status: "待審核",
         createdAt: now
       };
@@ -265,7 +265,7 @@ export function WorkflowPage() {
         response: null,
         error: "",
         statusHistory: [
-          { status: "等待中", at: now, note: "AI Producer 已建立待審核 Render Queue Draft。" }
+          { status: "等待中", at: now, note: "AI 製作人已建立待審核生成草稿。" }
         ]
       };
 
@@ -290,13 +290,13 @@ export function WorkflowPage() {
       <section className="space-y-6">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-sm font-medium text-primary">Workflow Builder</p>
-            <h2 className="mt-2 text-3xl font-semibold tracking-normal">流程編排與 AI Producer</h2>
+            <p className="text-sm font-medium text-primary">流程編排</p>
+            <h2 className="mt-2 text-3xl font-semibold tracking-normal">流程編排與 AI 製作人</h2>
             <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-              建立可重用流程模板，再批次準備待審核的創作計畫與 Render Queue Draft。
+              建立可重用流程模板，再批次準備待審核的創作計畫與生成草稿。
             </p>
           </div>
-          <Badge variant="secondary" className="w-fit">LocalStorage only</Badge>
+          <Badge variant="secondary" className="w-fit">本機資料</Badge>
         </div>
 
         {message ? (
@@ -307,10 +307,10 @@ export function WorkflowPage() {
           <CardHeader>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <CardTitle>Workflow Canvas</CardTitle>
+                <CardTitle>流程畫布</CardTitle>
                 <CardDescription>拖曳節點或用上下按鈕調整流程順序。</CardDescription>
               </div>
-              <Button onClick={saveTemplate}>儲存 Workflow Template</Button>
+              <Button onClick={saveTemplate}>儲存流程模板</Button>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -375,18 +375,18 @@ export function WorkflowPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>AI Producer</CardTitle>
+            <CardTitle>AI 製作人</CardTitle>
             <CardDescription>建立內容計畫，先產生待審核草稿，不自動生成影片。</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-              <Select label="內容計畫" value={producer.cadence} placeholder="選擇計畫" options={["每天 3 支 Shorts", "每週 2 支長影片"].map((item) => ({ label: item, value: item }))} onChange={(value) => setProducer({ ...producer, cadence: value })} />
+              <Select label="內容計畫" value={producer.cadence} placeholder="選擇計畫" options={["每天 3 支短影音", "每週 2 支長影片"].map((item) => ({ label: item, value: item }))} onChange={(value) => setProducer({ ...producer, cadence: value })} />
               <Select label="內容分類" value={producer.category} placeholder="選擇分類" options={categories.map((item) => ({ label: item, value: item }))} onChange={(value) => setProducer({ ...producer, category: value })} />
               <Select label="品牌" value={producer.brandId} placeholder="可留白" options={brands.map((item) => ({ label: titleOf(item), value: item.id }))} onChange={(value) => setProducer({ ...producer, brandId: value })} />
               <Select label="人物模板" value={producer.characterId} placeholder="可留白" options={characters.map((item) => ({ label: titleOf(item), value: item.id }))} onChange={(value) => setProducer({ ...producer, characterId: value })} />
               <Select label="配音" value={producer.voiceId} placeholder="可留白" options={voices.map((item) => ({ label: titleOf(item), value: item.id }))} onChange={(value) => setProducer({ ...producer, voiceId: value })} />
-              <Select label="Workflow Template" value={producer.workflowTemplateId} placeholder="使用目前畫布" options={templates.map((item) => ({ label: item.name, value: item.id }))} onChange={(value) => setProducer({ ...producer, workflowTemplateId: value })} />
-              <Select label="Provider" value={producer.provider} placeholder="選擇 Provider" options={providers.map((item) => ({ label: item, value: item }))} onChange={(value) => setProducer({ ...producer, provider: value })} />
+              <Select label="流程模板" value={producer.workflowTemplateId} placeholder="使用目前畫布" options={templates.map((item) => ({ label: item.name, value: item.id }))} onChange={(value) => setProducer({ ...producer, workflowTemplateId: value })} />
+              <Select label="影片服務" value={producer.provider} placeholder="選擇影片服務" options={providers.map((item) => ({ label: item, value: item }))} onChange={(value) => setProducer({ ...producer, provider: value })} />
             </div>
             <Button onClick={createWeeklyPlan}>建立本週創作計畫</Button>
           </CardContent>
@@ -395,7 +395,7 @@ export function WorkflowPage() {
         <Card>
           <CardHeader>
             <CardTitle>本週創作計畫</CardTitle>
-            <CardDescription>AI Producer 建立的待審核計畫。</CardDescription>
+            <CardDescription>AI 製作人建立的待審核計畫。</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {weeklyPlan.length === 0 ? (
@@ -425,9 +425,9 @@ export function WorkflowPage() {
             <SummaryRow label="節點" value={`${enabledCount} / ${nodes.length} 啟用`} />
             <SummaryRow label="人工確認" value={`${approvalCount} 個節點`} />
             <SummaryRow label="本週產量" value={`${planCount} 筆草稿`} />
-            <SummaryRow label="Provider" value={producer.provider} />
+            <SummaryRow label="影片服務" value={producer.provider} />
             <div className="rounded-md border bg-secondary/30 p-3 text-sm text-muted-foreground">
-              這版只建立 Projects、AI Director Draft、Render Queue Draft，所有項目保持待審核。
+              這版只建立專案、AI 導演草稿、生成佇列草稿，所有項目保持待審核。
             </div>
           </CardContent>
         </Card>

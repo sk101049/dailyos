@@ -77,6 +77,34 @@ const BRAND_KEY = "dailyos-brand-library";
 const defaultPrompt =
   "我要做一支30秒介紹ChatGPT最新功能的短影片，風格活潑，目標觀眾25~40歲。";
 
+const demoCases = [
+  {
+    title: "AI 工具介紹",
+    category: "AI",
+    prompt: "我要做一支30秒介紹ChatGPT最新功能的短影片，風格活潑，目標觀眾25~40歲。"
+  },
+  {
+    title: "保險知識",
+    category: "保險",
+    prompt: "我要做一支30秒說明有醫療險是不是就夠了的短影片，語氣親切，讓一般家庭聽得懂。"
+  },
+  {
+    title: "房地產知識",
+    category: "房地產",
+    prompt: "我要做一支30秒說明第一次看房要注意什麼的短影片，風格清楚務實，適合首購族。"
+  },
+  {
+    title: "健康小知識",
+    category: "健康",
+    prompt: "我要做一支30秒提醒上班族如何改善久坐疲勞的短影片，風格溫暖、生活化。"
+  },
+  {
+    title: "旅遊推薦",
+    category: "旅遊",
+    prompt: "我要做一支30秒推薦週末小旅行景點的短影片，風格輕鬆明亮，目標觀眾25到40歲。"
+  }
+];
+
 function readArray<T>(key: string): T[] {
   try {
     const saved = window.localStorage.getItem(key);
@@ -188,7 +216,13 @@ export function DirectorPage() {
 
   function planWithAi() {
     setPlan(buildPlan(prompt, category, duration));
-    setMessage("AI Director 已整理可編輯預覽，確認後才會寫入本機資料。");
+    setMessage("AI 導演已整理可編輯預覽，確認後才會寫入本機資料。");
+  }
+
+  function applyDemoCase(item: (typeof demoCases)[number]) {
+    setPrompt(item.prompt);
+    setCategory(item.category);
+    setMessage(`已載入示範案例「${item.title}」。`);
   }
 
   function applyBrand() {
@@ -248,7 +282,7 @@ export function DirectorPage() {
       id: crypto.randomUUID(),
       title: plan.scriptTitle,
       topic: category,
-      targetAudience: "AI Director 使用者",
+      targetAudience: "AI 導演使用者",
       status: "草稿",
       createdAt: now,
       updatedAt: now,
@@ -262,7 +296,7 @@ export function DirectorPage() {
       characters.find((item) => item.id === characterId) ??
       {
         id: crypto.randomUUID(),
-        name: "AI Director 預設人物",
+        name: "AI 導演預設人物",
         version: 1,
         references: [],
         hairstyle: "自然乾淨",
@@ -278,7 +312,7 @@ export function DirectorPage() {
       voices.find((item) => item.id === voiceId) ??
       {
         id: crypto.randomUUID(),
-        name: "AI Director 預設配音",
+        name: "AI 導演預設配音",
         genderAge: "繁中自然聲線",
         speakingStyle: "活潑清楚",
         tone: "親切可信",
@@ -360,8 +394,11 @@ export function DirectorPage() {
     <div className="mx-auto max-w-5xl space-y-6">
       <section className="space-y-5 rounded-2xl border bg-card p-5 shadow-sm sm:p-8">
         <div>
-          <p className="text-sm font-medium text-primary">AI Director</p>
+          <p className="text-sm font-medium text-primary">AI 導演</p>
           <h2 className="mt-2 text-3xl font-semibold tracking-normal">今天想創作什麼？</h2>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            直接像聊天一樣描述主題、觀眾與風格；需要靈感時先套用下方示範案例。
+          </p>
         </div>
 
         <textarea
@@ -370,6 +407,23 @@ export function DirectorPage() {
           onChange={(event) => setPrompt(event.target.value)}
           placeholder={defaultPrompt}
         />
+
+        <div className="space-y-3">
+          <p className="text-sm font-medium">示範案例</p>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+            {demoCases.map((item) => (
+              <button
+                key={item.title}
+                type="button"
+                className="rounded-md border bg-background px-3 py-2 text-left text-sm transition-colors hover:bg-secondary"
+                onClick={() => applyDemoCase(item)}
+              >
+                <span className="font-medium">{item.title}</span>
+                <span className="mt-1 block text-xs text-muted-foreground">{item.category}</span>
+              </button>
+            ))}
+          </div>
+        </div>
 
         <div className="space-y-3">
           <p className="text-sm font-medium">內容分類</p>
@@ -400,7 +454,7 @@ export function DirectorPage() {
         </div>
 
         <div className="flex flex-wrap gap-2">
-          <Button onClick={planWithAi}>AI 幫我規劃</Button>
+          <Button onClick={planWithAi}>請 AI 導演幫我規劃</Button>
           <Button variant="outline" onClick={applyBrand}>套用品牌</Button>
           <Button variant="outline" onClick={applyAssetPackage}>載入素材</Button>
         </div>
@@ -443,7 +497,7 @@ export function DirectorPage() {
             <Card className="xl:sticky xl:top-24">
               <CardHeader>
                 <CardTitle>產生項目</CardTitle>
-                <CardDescription>確認後寫入既有 Studio 資料結構</CardDescription>
+                <CardDescription>確認後寫入既有工作室資料結構</CardDescription>
               </CardHeader>
               <CardContent className="space-y-2">
                 {progress.map((item) => (

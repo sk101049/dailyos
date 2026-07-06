@@ -143,7 +143,7 @@ const initialTasks: ContentTask[] = [
   {
     id: "launch-medical",
     title: "醫療險缺口短影音",
-    platform: "YouTube Shorts",
+    platform: "YouTube 短影音",
     status: "待製作",
     publishDate: today
   }
@@ -271,6 +271,11 @@ export function DashboardPage() {
   const recentCompletedVideos = renderedVideos.slice(0, 5);
   const recentFailedRenders = renderJobs.filter((job) => job.status === "失敗").slice(0, 5);
   const weeklyPlanPreview = weeklyPlan.slice(0, 5);
+  const focusItems = [
+    missingSteps[0]?.label ? `補齊${missingSteps[0].label}` : "素材已齊全",
+    weeklyPlanPreview[0] ? `${weeklyPlanPreview[0].title}：${weeklyPlanPreview[0].status}` : "建立本週創作計畫",
+    recentRenderJobs[0] ? `檢查生成：${recentRenderJobs[0].status}` : "建立第一筆生成工作"
+  ];
 
   async function loadProviderStatuses() {
     try {
@@ -306,6 +311,21 @@ export function DashboardPage() {
             <Link href="/director">開始今天的影片</Link>
           </Button>
         </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>今天先看這三件事</CardTitle>
+            <CardDescription>把每日工作台收斂成最需要處理的下一步。</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-3 md:grid-cols-3">
+            {focusItems.map((item, index) => (
+              <div key={item} className="rounded-md border bg-background p-3 text-sm">
+                <p className="text-muted-foreground">第 {index + 1} 件</p>
+                <p className="mt-1 font-medium">{item}</p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
 
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
@@ -475,10 +495,10 @@ export function DashboardPage() {
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <CardTitle>本週創作計畫</CardTitle>
-                <CardDescription>AI Producer 建立的待審核內容。</CardDescription>
+                <CardDescription>AI 製作人建立的待審核內容。</CardDescription>
               </div>
               <Button asChild variant="outline" size="sm">
-                <Link href="/workflow">開啟 Workflow</Link>
+                <Link href="/workflow">開啟流程編排</Link>
               </Button>
             </div>
           </CardHeader>
