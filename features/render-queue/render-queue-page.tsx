@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { IssueReportButton } from "@/components/issue-report-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -184,9 +185,12 @@ export function RenderQueuePage() {
             管理所有 AI 影片生成工作。可混合 Gemini / Veo 與 OpenMontage，不啟動背景服務。
           </p>
         </div>
-        <Button onClick={() => runGeminiWorker()} disabled={isWorking || !nextGeminiJob}>
-          {isWorking ? "執行中..." : "執行下一個 Gemini 工作"}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <IssueReportButton page="Render Queue" />
+          <Button onClick={() => runGeminiWorker()} disabled={isWorking || !nextGeminiJob}>
+            {isWorking ? "執行中..." : "執行下一個 Gemini 工作"}
+          </Button>
+        </div>
       </div>
 
       {workerMessage ? (

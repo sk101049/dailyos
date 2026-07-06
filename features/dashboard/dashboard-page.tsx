@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { IssueReportButton } from "@/components/issue-report-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +12,13 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
+import {
+  BETA_ONBOARDING_KEY,
+  DEMO_SEEDED_KEY,
+  demoCases,
+  readIssueReports,
+  seedDemoData
+} from "@/lib/beta-validation";
 import { readRenderQueue, type RenderJob } from "@/lib/render-queue";
 
 type ScriptAsset = {
@@ -129,6 +137,8 @@ const CHARACTER_KEY = "dailyos-character-library";
 const VOICE_KEY = "dailyos-voice-library";
 const STORYBOARD_KEY = "dailyos-storyboard-v2";
 const PACKAGE_KEY = "dailyos-video-packages";
+const BRAND_KEY = "dailyos-brand-library";
+const WORKFLOW_KEY = "dailyos-workflow-templates";
 const PROJECT_KEY = "dailyos-creator-dashboard-project";
 const PROJECTS_KEY = "dailyos-projects";
 const ACTIVE_PROJECT_KEY = "dailyos-active-project-id";
@@ -179,6 +189,8 @@ export function DashboardPage() {
   const [voices, setVoices] = useState<VoiceAsset[]>([]);
   const [storyboard, setStoryboard] = useState<StoryboardScene[]>([]);
   const [packages, setPackages] = useState<ProductionPackage[]>([]);
+  const [brandCount, setBrandCount] = useState(0);
+  const [workflowCount, setWorkflowCount] = useState(0);
   const [tasks, setTasks] = useState<ContentTask[]>(initialTasks);
   const [publishing, setPublishing] = useState<PublishingItem[]>(initialPublishing);
   const [activeProject, setActiveProject] = useState<CreatorProject | null>(null);
@@ -192,6 +204,9 @@ export function DashboardPage() {
   const [voiceId, setVoiceId] = useState("");
   const [provider, setProvider] = useState("Gemini");
   const [message, setMessage] = useState<string | null>(null);
+  const [onboardingDismissed, setOnboardingDismissed] = useState(true);
+  const [demoSeededAt, setDemoSeededAt] = useState("");
+  const [issueReportCount, setIssueReportCount] = useState(0);
 
   useEffect(() => {
     const loadedScripts = readArray<ScriptAsset>(SCRIPT_KEY);
@@ -208,6 +223,8 @@ export function DashboardPage() {
     setVoices(loadedVoices);
     setStoryboard(loadedStoryboard);
     setPackages(loadedPackages);
+    setBrandCount(readArray<unknown>(BRAND_KEY).length);
+    setWorkflowCount(readArray<unknown>(WORKFLOW_KEY).length);
     setTasks(readArray<ContentTask>(CALENDAR_KEY, initialTasks));
     setPublishing(readArray<PublishingItem>(PUBLISHING_KEY, initialPublishing));
     setRenderJobs(readRenderQueue());
@@ -219,6 +236,9 @@ export function DashboardPage() {
     setCharacterId(project?.defaultCharacterId ?? loadedPackages[0]?.character?.id ?? loadedCharacters[0]?.id ?? "");
     setVoiceId(project?.defaultVoiceId ?? loadedPackages[0]?.voice?.id ?? loadedVoices[0]?.id ?? "");
     setProvider(project?.defaultVideoProvider ?? loadedPackages[0]?.provider ?? "Gemini");
+    setOnboardingDismissed(window.localStorage.getItem(BETA_ONBOARDING_KEY) === "true");
+    setDemoSeededAt(window.localStorage.getItem(DEMO_SEEDED_KEY) ?? "");
+    setIssueReportCount(readIssueReports().length);
     void loadProviderStatuses();
   }, []);
 
@@ -276,6 +296,20 @@ export function DashboardPage() {
     weeklyPlanPreview[0] ? `${weeklyPlanPreview[0].title}：${weeklyPlanPreview[0].status}` : "建立本週創作計畫",
     recentRenderJobs[0] ? `檢查生成：${recentRenderJobs[0].status}` : "建立第一筆生成工作"
   ];
+  const onboardingSteps = [
+    { label: "建立品牌", done: brandCount > 0, href: "/brand" },
+    { label: "建立人物", done: characters.length > 0, href: "/character" },
+    { label: "建立配音", done: voices.length > 0, href: "/voice" },
+    { label: "建立第一支影片", done: packages.length > 0 || renderJobs.length > 0, href: "/director" }
+  ];
+  const betaHealth = [
+    { label: "Build", status: "green", detail: "最近一次 build 已通過" },
+    { label: "Smoke Test", status: demoSeededAt ? "green" : "yellow", detail: demoSeededAt ? "已載入示範資料" : "建議先跑 Beta 檢查表" },
+    { label: "Provider", status: providerStatuses.some((item) => item.available) ? "green" : "yellow", detail: providerStatuses.length ? "可讀取服務狀態" : "尚未讀取服務狀態" },
+    { label: "Workflow", status: workflowCount > 0 ? "green" : "yellow", detail: workflowCount > 0 ? `${workflowCount} 個流程模板` : "尚未建立流程模板" },
+    { label: "Asset", status: scripts.length + characters.length + voices.length > 0 ? "green" : "red", detail: `${scripts.length + characters.length + voices.length} 個核心素材` },
+    { label: "Publishing", status: publishing.length > 0 ? "green" : "yellow", detail: `${publishing.length} 筆發布項目` }
+  ];
 
   async function loadProviderStatuses() {
     try {
@@ -294,6 +328,17 @@ export function DashboardPage() {
     setMessage("製作包已從創作者儀表板儲存。");
   }
 
+  function dismissOnboarding() {
+    window.localStorage.setItem(BETA_ONBOARDING_KEY, "true");
+    setOnboardingDismissed(true);
+  }
+
+  function loadDemoData() {
+    seedDemoData();
+    setDemoSeededAt(window.localStorage.getItem(DEMO_SEEDED_KEY) ?? new Date().toISOString());
+    setMessage(`已載入 ${demoCases.length} 個示範創作案例。`);
+  }
+
   return (
     <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
       <section className="space-y-6">
@@ -307,10 +352,62 @@ export function DashboardPage() {
               先看今日專案與製作進度，再開始下一支影片。
             </p>
           </div>
-          <Button asChild>
-            <Link href="/director">開始今天的影片</Link>
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <IssueReportButton page="Dashboard" />
+            <Button asChild>
+              <Link href="/director">開始今天的影片</Link>
+            </Button>
+          </div>
         </div>
+
+        {!onboardingDismissed ? (
+          <Card>
+            <CardHeader>
+              <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <CardTitle>歡迎使用 DailyOS Beta</CardTitle>
+                  <CardDescription>先完成四個步驟，就能開始製作第一支影片。</CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={dismissOnboarding}>我知道了</Button>
+              </div>
+            </CardHeader>
+            <CardContent className="grid gap-3 md:grid-cols-4">
+              {onboardingSteps.map((step) => (
+                <Link key={step.label} href={step.href} className="rounded-md border bg-background p-3 text-sm">
+                  <Badge variant={step.done ? "default" : "outline"}>{step.done ? "完成" : "待完成"}</Badge>
+                  <p className="mt-2 font-medium">{step.label}</p>
+                </Link>
+              ))}
+            </CardContent>
+          </Card>
+        ) : null}
+
+        <Card>
+          <CardHeader>
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <CardTitle>Beta 狀態</CardTitle>
+                <CardDescription>Build、Smoke Test、Provider、Workflow、Asset、Publishing 的快速健康檢查。</CardDescription>
+              </div>
+              <Button variant="outline" size="sm" onClick={loadDemoData}>載入 20 個示範案例</Button>
+            </div>
+          </CardHeader>
+          <CardContent className="grid gap-3 md:grid-cols-3">
+            {betaHealth.map((item) => (
+              <div key={item.label} className="rounded-md border bg-background p-3 text-sm">
+                <div className="flex items-center gap-2">
+                  <span className={`h-2.5 w-2.5 rounded-full ${item.status === "green" ? "bg-emerald-500" : item.status === "yellow" ? "bg-amber-500" : "bg-red-500"}`} />
+                  <p className="font-medium">{item.label}</p>
+                </div>
+                <p className="mt-2 text-muted-foreground">{item.detail}</p>
+              </div>
+            ))}
+            <div className="rounded-md border bg-background p-3 text-sm">
+              <p className="font-medium">問題回報</p>
+              <p className="mt-2 text-muted-foreground">{issueReportCount} 筆本機紀錄</p>
+            </div>
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>

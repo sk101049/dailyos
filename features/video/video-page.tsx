@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { IssueReportButton } from "@/components/issue-report-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -417,7 +418,10 @@ export function VideoPage() {
               選擇腳本、人物、配音、分鏡與影片生成服務，建立同一套 Render Queue 工作。
             </p>
           </div>
-          <Badge variant="secondary" className="w-fit">服務測試版</Badge>
+          <div className="flex flex-wrap gap-2">
+            <IssueReportButton page="Video Studio" />
+            <Badge variant="secondary" className="w-fit">服務測試版</Badge>
+          </div>
         </div>
 
         <Card id="export" className="scroll-mt-24">

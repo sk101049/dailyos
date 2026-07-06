@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { IssueReportButton } from "@/components/issue-report-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -393,12 +394,15 @@ export function DirectorPage() {
   return (
     <div className="mx-auto max-w-5xl space-y-6">
       <section className="space-y-5 rounded-2xl border bg-card p-5 shadow-sm sm:p-8">
-        <div>
-          <p className="text-sm font-medium text-primary">AI 導演</p>
-          <h2 className="mt-2 text-3xl font-semibold tracking-normal">今天想創作什麼？</h2>
-          <p className="mt-2 text-sm leading-6 text-muted-foreground">
-            直接像聊天一樣描述主題、觀眾與風格；需要靈感時先套用下方示範案例。
-          </p>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="text-sm font-medium text-primary">AI 導演</p>
+            <h2 className="mt-2 text-3xl font-semibold tracking-normal">今天想創作什麼？</h2>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              直接像聊天一樣描述主題、觀眾與風格；需要靈感時先套用下方示範案例。
+            </p>
+          </div>
+          <IssueReportButton page="AI Director" />
         </div>
 
         <textarea
