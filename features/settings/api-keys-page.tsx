@@ -26,62 +26,71 @@ type VideoProviderStatus = {
   configured: boolean;
 };
 
+type EnvHelper = {
+  projectRoot: string;
+  envPath: string;
+  openCommand: string;
+  template: string;
+  canWriteFile: boolean;
+  note: string;
+};
+
 const providers: ProviderField[] = [
   {
     id: "openai",
     name: "OpenAI",
     envVars: ["OPENAI_API_KEY"],
     status: "not_configured",
-    note: "Script generation uses server-side env only."
+    note: "腳本生成只讀取伺服器端環境變數。"
   },
   {
     id: "gemini",
     name: "Gemini / Google AI Studio",
     envVars: ["GEMINI_API_KEY", "GOOGLE_AI_API_KEY", "GOOGLE_API_KEY"],
     status: "not_configured",
-    note: "Status comes from the server-side Gemini video adapter."
+    note: "狀態來自伺服器端 Gemini 影片 adapter。"
   },
   {
     id: "elevenlabs",
     name: "ElevenLabs",
     envVars: ["ELEVENLABS_API_KEY"],
     status: "coming_soon",
-    note: "Future TTS integration."
+    note: "未來配音整合預留。"
   },
   {
     id: "azure-speech",
     name: "Azure Speech",
     envVars: ["AZURE_SPEECH_KEY", "AZURE_SPEECH_REGION"],
     status: "coming_soon",
-    note: "Future speech integration."
+    note: "未來語音整合預留。"
   },
   {
     id: "runway",
     name: "Runway",
     envVars: ["RUNWAY_API_KEY"],
     status: "coming_soon",
-    note: "Future video provider."
+    note: "未來影片服務預留。"
   },
   {
     id: "kling",
     name: "Kling",
     envVars: ["KLING_API_KEY"],
     status: "coming_soon",
-    note: "Future video provider."
+    note: "未來影片服務預留。"
   },
   {
     id: "pika",
     name: "Pika",
     envVars: ["PIKA_API_KEY"],
     status: "coming_soon",
-    note: "Future video provider."
+    note: "未來影片服務預留。"
   },
   {
     id: "custom",
-    name: "Custom provider",
+    name: "自訂 Provider",
     envVars: ["CUSTOM_VIDEO_PROVIDER_API_KEY"],
     status: "coming_soon",
-    note: "Reserved for local provider experiments."
+    note: "保留給本機 provider 實驗。"
   }
 ];
 
@@ -108,9 +117,11 @@ export function ApiKeysPage() {
   const [visible, setVisible] = useState<Record<string, boolean>>({});
   const [message, setMessage] = useState<string | null>(null);
   const [geminiConfigured, setGeminiConfigured] = useState(false);
+  const [envHelper, setEnvHelper] = useState<EnvHelper | null>(null);
 
   useEffect(() => {
     void loadGeminiStatus();
+    void loadEnvHelper();
   }, []);
 
   const providerRows = useMemo<ProviderField[]>(
@@ -139,14 +150,28 @@ export function ApiKeysPage() {
     }
   }
 
-  async function copyTemplate() {
+  async function loadEnvHelper() {
+    try {
+      const response = await fetch("/api/env-helper");
+      const payload = (await response.json()) as EnvHelper;
+      setEnvHelper(payload);
+    } catch {
+      setEnvHelper(null);
+    }
+  }
+
+  async function copyText(value: string, success: string) {
     if (!navigator.clipboard?.writeText) {
-      setMessage("剪貼簿不可用，請手動複製下方 .env.local 範本。");
+      setMessage("剪貼簿不可用，請手動複製下方內容。");
       return;
     }
 
-    await navigator.clipboard.writeText(template);
-    setMessage(".env.local 範本已複製。");
+    await navigator.clipboard.writeText(value);
+    setMessage(success);
+  }
+
+  async function copyTemplate() {
+    await copyText(envHelper?.template ?? template, ".env.local 範本已複製。");
   }
 
   function updateValue(key: string, value: string) {
@@ -161,12 +186,12 @@ export function ApiKeysPage() {
     <div className="space-y-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="text-sm font-medium text-primary">Settings</p>
+          <p className="text-sm font-medium text-primary">設定</p>
           <h2 className="mt-2 text-3xl font-semibold tracking-normal">
             API Key 設定
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
-            集中管理未來 provider 的設定欄位。MVP 只提供本機填寫與 .env.local 範本，不會送出或使用瀏覽器輸入的 key。
+            集中管理未來 provider 的設定欄位。MVP 只提供本機填寫與 .env.local 範本，不會送出或使用瀏覽器輸入的金鑰。
           </p>
         </div>
         <Button variant="outline" onClick={copyTemplate}>
@@ -176,15 +201,55 @@ export function ApiKeysPage() {
 
       <Card>
         <CardHeader>
+          <CardTitle>.env.local 檔案位置</CardTitle>
+          <CardDescription>
+            這裡只顯示路徑與空白範本，不會讀取或暴露已存在的 API key。
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-3 md:grid-cols-2">
+            <Info label="專案根目錄" value={envHelper?.projectRoot ?? "偵測中..."} />
+            <Info label="預期 .env.local 路徑" value={envHelper?.envPath ?? "偵測中..."} />
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              onClick={() => copyText(envHelper?.envPath ?? "", ".env.local 路徑已複製。")}
+              disabled={!envHelper}
+            >
+              複製 .env.local 路徑
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => copyText(envHelper?.openCommand ?? "", "PowerShell 開啟指令已複製。")}
+              disabled={!envHelper}
+            >
+              複製 PowerShell 開啟指令
+            </Button>
+            <Button variant="outline" onClick={copyTemplate}>
+              複製完整 .env.local 範本
+            </Button>
+          </div>
+          <div className="rounded-md border bg-secondary/30 p-3 text-sm leading-6 text-muted-foreground">
+            <p>1. 將範本貼到 `.env.local`。</p>
+            <p>2. 填入需要的 API key 並儲存檔案。</p>
+            <p>3. 重新啟動 `npm run dev`。</p>
+            <p className="mt-2">{envHelper?.note ?? "目前不支援直接寫入檔案，請手動貼上範本。"}</p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>安全提醒</CardTitle>
-          <CardDescription>請把正式整合放在 server-side environment variables。</CardDescription>
+          <CardDescription>請把正式整合放在伺服器端環境變數。</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 text-sm text-muted-foreground md:grid-cols-3">
           <p className="rounded-md border bg-secondary/30 p-3">
-            瀏覽器內輸入或暫存的 key 不適合 production，不能視為安全儲存。
+            瀏覽器內輸入或暫存的金鑰不適合正式環境，不能視為安全儲存。
           </p>
           <p className="rounded-md border bg-secondary/30 p-3">
-            Production provider integration 應使用伺服器端 `.env.local` 或部署平台的環境變數。
+            正式 provider 整合應使用伺服器端 `.env.local` 或部署平台的環境變數。
           </p>
           <p className="rounded-md border bg-secondary/30 p-3">
             永遠不要把 API key commit 到 git，也不要貼到 issue、PR 或公開文件。
@@ -243,15 +308,24 @@ export function ApiKeysPage() {
         <CardHeader>
           <CardTitle>.env.local 範本</CardTitle>
           <CardDescription>
-            將需要的 key 設定在伺服器端。這個頁面的輸入欄不會被自動 provider call 使用。
+            將需要的 key 設定在伺服器端。這個頁面的輸入欄不會被自動 provider 呼叫使用。
           </CardDescription>
         </CardHeader>
         <CardContent>
           <pre className="max-h-80 overflow-auto whitespace-pre-wrap break-words rounded-md bg-secondary/40 p-3 text-sm leading-6 text-muted-foreground">
-            {template}
+            {envHelper?.template ?? template}
           </pre>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+function Info({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-md border bg-background p-3 text-sm">
+      <p className="text-muted-foreground">{label}</p>
+      <p className="mt-1 break-words font-medium">{value}</p>
     </div>
   );
 }
