@@ -9,7 +9,6 @@ import {
   Box,
   BriefcaseBusiness,
   CalendarDays,
-  ChevronDown,
   Clapperboard,
   FileText,
   FolderKanban,
@@ -28,6 +27,8 @@ import {
   X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AppLayout } from "@/components/ui/app-layout";
+import { SidebarGroupButton, SidebarItem } from "@/components/ui/sidebar-item";
 import { cn } from "@/lib/utils";
 
 type Icon = React.ComponentType<{ className?: string }>;
@@ -184,8 +185,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-40 overflow-y-auto border-r border-white/70 bg-white/72 px-4 py-6 shadow-2xl backdrop-blur-2xl transition-all duration-300 ease-out dark:border-white/10 dark:bg-slate-950/72",
-          compact ? "lg:w-24" : "lg:w-72",
+          "fixed inset-y-0 left-0 z-40 overflow-y-auto bg-[#111a44] px-4 py-6 text-white shadow-2xl transition-all duration-300 ease-out",
+          compact ? "lg:w-24" : "lg:w-64",
           mobileOpen ? "w-72 translate-x-0" : "w-72 -translate-x-full lg:translate-x-0"
         )}
       >
@@ -195,14 +196,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
           <div className={cn(compact && "lg:hidden")}>
             <p className="text-xl font-bold">DailyOS</p>
-            <p className="text-sm text-muted-foreground">AI 內容營運工作台</p>
+            <p className="text-sm text-white/62">AI 內容營運工作台</p>
           </div>
         </div>
 
         <Button
           variant="outline"
           size="sm"
-          className="mt-5 w-full rounded-2xl bg-white/70"
+          className="mt-5 w-full rounded-2xl border-white/10 bg-white/10 text-white hover:bg-white/15"
           onClick={() => setCompact((value) => !value)}
         >
           {compact ? "展開選單" : "收合選單"}
@@ -216,20 +217,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
             return (
               <div key={group.label} className="space-y-1">
-                <button
-                  type="button"
-                  className={cn(
-                    "flex h-11 w-full items-center gap-3 rounded-2xl px-3 text-sm font-semibold transition-all duration-200",
-                    groupActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-white/80 hover:text-foreground",
-                    compact && "lg:justify-center lg:px-2"
-                  )}
+                <SidebarGroupButton
+                  label={group.label}
+                  icon={Icon}
+                  active={groupActive}
+                  open={open}
+                  compact={compact}
                   onClick={() => toggleGroup(group.label)}
-                  title={group.label}
-                >
-                  <Icon className="h-5 w-5 shrink-0" />
-                  <span className={cn("flex-1 text-left", compact && "lg:hidden")}>{group.label}</span>
-                  <ChevronDown className={cn("h-4 w-4 transition-transform", open && "rotate-180", compact && "lg:hidden")} />
-                </button>
+                />
 
                 {open || compact ? (
                   <div className={cn("space-y-1", compact ? "lg:pl-0" : "pl-4")}>
@@ -238,22 +233,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                       const active = isActive(pathname, item.href);
 
                       return (
-                        <Link
+                        <SidebarItem
                           key={item.href}
                           href={item.href}
-                          title={item.label}
+                          label={item.label}
+                          icon={ItemIcon}
+                          active={active}
+                          compact={compact}
                           onClick={() => setMobileOpen(false)}
-                          className={cn(
-                            "flex h-10 items-center gap-3 rounded-2xl px-3 text-sm font-medium transition-all duration-200",
-                            active
-                              ? "v1-active-nav"
-                              : "text-muted-foreground hover:translate-x-1 hover:bg-white/80 hover:text-foreground",
-                            compact && "lg:justify-center lg:px-2"
-                          )}
-                        >
-                          <ItemIcon className="h-4 w-4 shrink-0" />
-                          <span className={cn(compact && "lg:hidden")}>{item.label}</span>
-                        </Link>
+                        />
                       );
                     })}
                   </div>
@@ -264,9 +252,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </nav>
       </aside>
 
-      <div className={cn("transition-all duration-300", compact ? "lg:pl-24" : "lg:pl-72")}>
-        <main className="v1-page px-4 py-6 pt-20 sm:px-6 lg:px-8 lg:pt-6">{children}</main>
-        <nav className="fixed inset-x-4 bottom-4 z-30 flex gap-2 overflow-x-auto rounded-3xl border bg-white/82 p-2 shadow-2xl backdrop-blur lg:hidden">
+      <AppLayout
+        compact={compact}
+        mobileNav={(
+          <nav className="fixed inset-x-4 bottom-4 z-30 flex gap-2 overflow-x-auto rounded-3xl border bg-white/82 p-2 shadow-2xl backdrop-blur lg:hidden">
           {mobileItems.slice(0, 6).map((item) => {
             const Icon = item.icon;
 
@@ -284,8 +273,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </Link>
             );
           })}
-        </nav>
-      </div>
+          </nav>
+        )}
+      >
+        {children}
+      </AppLayout>
     </div>
   );
 }

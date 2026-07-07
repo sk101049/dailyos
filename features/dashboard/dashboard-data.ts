@@ -1,5 +1,5 @@
 import { DEMO_SEEDED_KEY, readIssueReports } from "@/lib/beta-validation";
-import { readRenderQueue, type RenderJob } from "@/lib/render-queue";
+import { readRenderQueue } from "@/lib/render-queue";
 
 export type DashboardTheme = "Sunrise" | "Aurora" | "Forest" | "Light" | "Dark";
 export type DashboardIconKey =
@@ -155,7 +155,7 @@ export function writeDashboardTheme(theme: DashboardTheme) {
 }
 
 export async function loadDashboardData(): Promise<DashboardData> {
-  const tasks = readArray<DashboardTask>(TASKS_KEY, fallbackTasks);
+  const tasks = readTasks();
   const weeklyPlan = readArray<DashboardWeeklyPlanItem>(WEEKLY_PLAN_KEY, fallbackWeeklyPlan);
   const renderJobs = readRenderQueue();
   const projects = readArray<DashboardProject>(PROJECTS_KEY);
@@ -220,6 +220,14 @@ export async function loadDashboardData(): Promise<DashboardData> {
     isDemoSeeded,
     issueReportCount
   };
+}
+
+function readTasks() {
+  return readArray<DashboardTask>(TASKS_KEY, fallbackTasks);
+}
+
+function writeTasks(tasks: DashboardTask[]) {
+  window.localStorage.setItem(TASKS_KEY, JSON.stringify(tasks));
 }
 
 async function loadProviderStatuses() {
