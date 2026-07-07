@@ -28,9 +28,12 @@ export type VideoProviderStatus = {
   };
 };
 
-export type VideoProviderAdapter = {
+export type VideoProviderAdapter<TInput = unknown> = {
   id: string;
   label: string;
   envVars: string[];
   getStatus: () => VideoProviderStatus;
+  createJob?: (input: TInput) => Promise<unknown>;
+  getJobStatus?: (providerJobId: string) => Promise<unknown>;
+  downloadResult?: (providerJobId: string) => Promise<unknown>;
 };

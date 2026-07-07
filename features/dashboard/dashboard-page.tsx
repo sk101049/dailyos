@@ -223,6 +223,26 @@ export function DashboardPage() {
           )}
         </DashboardCard>
 
+        <DashboardCard title="最近完成影片" action="前往素材庫" href="/assets">
+          {dashboard.completedVideos.length ? (
+            dashboard.completedVideos.map((video) => (
+              <ListRow key={video.id} {...video} icon={iconMap[video.icon]} />
+            ))
+          ) : (
+            <EmptyState text="尚未完成生成影片。" skeleton />
+          )}
+        </DashboardCard>
+
+        <DashboardCard title="最近失敗工作" action="查看佇列" href="/render-queue">
+          {dashboard.failedJobs.length ? (
+            dashboard.failedJobs.map((job) => (
+              <ListRow key={job.id} {...job} icon={iconMap[job.icon]} />
+            ))
+          ) : (
+            <EmptyState text="目前沒有失敗工作。" skeleton />
+          )}
+        </DashboardCard>
+
         <DashboardCard title="系統健康" action="回報問題" href="/dashboard">
           {dashboard.health.map((item) => (
             <HealthRow key={item.id} {...item} icon={iconMap[item.icon]} />

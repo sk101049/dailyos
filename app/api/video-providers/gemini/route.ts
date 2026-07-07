@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import {
+  downloadGeminiResult,
   getGeminiOperation,
   getGeminiVideoApiStatus,
   startGeminiVeoVideo
@@ -18,9 +19,26 @@ type GeminiVideoRequest = {
 };
 
 export async function GET(request: Request) {
-  const operationName = new URL(request.url).searchParams.get("operationName");
+  const searchParams = new URL(request.url).searchParams;
+  const operationName = searchParams.get("operationName");
+  const download = searchParams.get("download") === "1";
 
   if (operationName) {
+    if (download) {
+      const result = await downloadGeminiResult(operationName);
+      if (result.ok) {
+        return new Response(result.blob, {
+          headers: {
+            "Content-Type": result.contentType,
+            "Content-Disposition": `attachment; filename="${result.fileName}"`
+          }
+        });
+      }
+
+      const status = result.status === "not_found" ? 404 : result.status === "invalid_request" ? 400 : 503;
+      return NextResponse.json(result, { status });
+    }
+
     const result = await getGeminiOperation(operationName);
     return NextResponse.json(result, { status: result.ok ? 200 : 503 });
   }

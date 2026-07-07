@@ -97,6 +97,8 @@ export type DashboardData = {
   assistantSuggestions: string[];
   recentProjects: DashboardListItem[];
   renderQueue: DashboardListItem[];
+  completedVideos: DashboardListItem[];
+  failedJobs: DashboardListItem[];
   health: DashboardHealthItem[];
   quickStarts: DashboardQuickStart[];
   isDemoSeeded: boolean;
@@ -208,6 +210,20 @@ export async function loadDashboardData(): Promise<DashboardData> {
       detail: `${job.provider} · ${formatDate(job.updatedAt)}`,
       status: job.status,
       icon: "rocket"
+    })),
+    completedVideos: renderedVideos.slice(0, 5).map((video) => ({
+      id: video.id,
+      title: video.title ?? video.name ?? video.fileName,
+      detail: `${video.projectName} · ${formatDate(video.importedAt)}`,
+      status: "已完成",
+      icon: "video"
+    })),
+    failedJobs: renderJobs.filter((job) => job.status === "失敗").slice(0, 5).map((job) => ({
+      id: job.id,
+      title: job.title,
+      detail: `${job.provider} · ${formatDate(job.updatedAt)}`,
+      status: "失敗",
+      icon: "health"
     })),
     health: [
       { id: "build", label: "Build", value: "正常", icon: "shield" },
