@@ -13,6 +13,7 @@ Current version: 0.1.0-beta
 - Storyboard Studio in Content Studio for scene prompts, character locks, and voice locks.
 - Video Studio for assembling a local production package from script, character, voice, storyboard, and selected provider.
 - API Key Settings for checking local environment configuration without exposing secrets to the frontend.
+- System Health page for v1.0 RC readiness checks.
 - CRM workspace for client follow-up planning.
 - Calendar for local content planning.
 - Publishing Center for local-first short-form video publishing status.
@@ -48,6 +49,7 @@ app/
   voice/
   video/
   settings/api-keys/
+  health/
   calendar/
   crm/
   publishing/
@@ -58,6 +60,7 @@ features/
   voice/
   video/
   settings/
+  health/
   calendar/
   crm/
   publishing/
@@ -77,3 +80,6 @@ docs/
 - [Development roadmap](docs/ROADMAP.md)
 - [Tasks](docs/TASKS.md)
 - [End-to-end smoke test checklist](docs/SMOKE_TEST.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Design system](docs/DESIGN_SYSTEM.md)
+- [Release checklist](docs/RELEASE_CHECKLIST.md)

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import type React from "react";
 import { useEffect, useMemo, useState } from "react";
 import {
+  Activity,
   Bot,
   Box,
   BriefcaseBusiness,
@@ -113,6 +114,7 @@ const navGroups: NavGroup[] = [
     label: "系統設定",
     icon: Settings,
     items: [
+      { href: "/health", label: "系統健康", icon: Activity },
       { href: "/settings/api-keys", label: "API Keys", icon: KeyRound }
     ]
   }

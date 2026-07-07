@@ -6,10 +6,9 @@ DailyOS includes a Gemini video provider adapter scaffold and a server-side-only
 
 - Server-side configuration only.
 - No API key is exposed to the frontend.
-- The API spike is disabled unless `GEMINI_VIDEO_API_ENABLED=true`.
-- No one-click render UX is included.
+- Render Queue can submit, sync, and download Gemini video jobs.
 - No paid API access is assumed.
-- No background worker or polling worker is included.
+- No background worker is included; status updates are manual.
 
 ## Environment Variables
 
@@ -26,10 +25,10 @@ GOOGLE_AI_API_KEY=your_key_here
 GOOGLE_API_KEY=your_key_here
 ```
 
-Enable the spike explicitly:
+Gemini video is enabled by default when a server key exists. To disable it locally:
 
 ```bash
-GEMINI_VIDEO_API_ENABLED=true
+GEMINI_VIDEO_API_ENABLED=false
 ```
 
 DailyOS only reports whether configuration exists. It never returns the secret value to the client.
@@ -51,10 +50,18 @@ GET /api/video-providers/gemini
 POST /api/video-providers/gemini
 ```
 
-`GET` returns feature-flag and configuration status only.
+`GET` returns configuration status, or polls an operation when `operationName` is provided.
 
-`POST` accepts a Gemini prompt package or prompt string and submits a Veo long-running prediction only when the feature flag and server API key are present. The route returns the operation metadata for manual follow-up. It does not expose the API key, poll in the background, download files, or store output.
+`POST` accepts a Gemini prompt package or prompt string and submits a Veo long-running prediction when the server API key is present.
+
+Downloads use:
+
+```text
+GET /api/video-providers/gemini?operationName=...&download=1
+```
+
+The route downloads through the server so the API key is not exposed to the browser.
 
 ## Future Upgrade Path
 
-When official credentials and API access are available, add a user-facing submit/poll/download flow that reads the same Production Package shape. Keep UI components using the unified provider status and production package shape instead of calling provider SDKs directly.
+Keep UI components using the unified provider status and production package shape instead of calling provider SDKs directly. Add background workers only when DailyOS moves beyond the LocalStorage-only MVP.
