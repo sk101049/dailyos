@@ -5,7 +5,7 @@ Status updated for `v1.0.0-rc.1` on 2026-07-07.
 ## Build
 
 - [x] `npm run build` passes.
-- [ ] `npm run lint` currently opens the deprecated `next lint` interactive migration prompt; migrate to ESLint CLI before v1.0 final.
+- [x] `npm run lint` passes through ESLint CLI.
 
 ## End-to-End Validation
 
@@ -23,6 +23,7 @@ Status updated for `v1.0.0-rc.1` on 2026-07-07.
 - [x] OpenMontage demo: Video Studio -> `openmontage-props.json` -> render command.
 - [x] Completed video handoff: Asset Library -> Publishing.
 - [x] System health verification: `/health` shows Build, API Key, Provider, Render Queue, Asset Library, and Publishing readiness.
+- [x] HTTP smoke test passed for `/`, `/health`, `/director`, `/video`, `/render-queue`, `/assets`, `/publishing`, and `/api/video-providers`.
 
 ## System Health
 
@@ -48,6 +49,5 @@ Status updated for `v1.0.0-rc.1` on 2026-07-07.
 
 ## Known RC Gaps
 
-- `npm run lint` uses deprecated `next lint` and opens an interactive migration prompt under Next.js 15.
 - Gemini live rendering requires a valid server-side API key and provider access.
 - OpenMontage remains a local/manual render path.

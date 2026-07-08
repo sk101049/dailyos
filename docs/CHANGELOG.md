@@ -6,7 +6,8 @@
 - Updated release candidate checklist and documentation.
 - Documented v1 architecture, design system, and tag preparation.
 - Validated the local-first AI Director to Publishing workflow for RC handoff.
-- Known gap: `npm run lint` still uses deprecated interactive `next lint`.
+- Fixed `npm run lint` by migrating from deprecated `next lint` to ESLint CLI.
+- Verified the core creation routes and provider status endpoint return HTTP 200 locally.
 
 ## v0.1.0-beta
 

@@ -26,16 +26,16 @@ AI Director -> Video Studio -> Render Queue -> Gemini/OpenMontage -> Asset Libra
 ## Validation Status
 
 - `npm run build`: passed.
+- `npm run lint`: passed through ESLint CLI.
 - `/health`: verified as available and meaningful for RC checks.
+- Core creation routes and provider status endpoint: HTTP 200 locally.
 - Demo flows: documented as pass for local-first handoff paths.
-- `npm run lint`: blocked by deprecated interactive `next lint` migration prompt.
 
 ## Known Limitations
 
 - No database, authentication, cloud sync, or background worker in this RC.
 - Gemini live generation requires valid server-side credentials and model access.
 - OpenMontage rendering remains a local/manual provider path.
-- Lint command should be migrated to ESLint CLI before v1.0 final.
 
 ## Tag Preparation
 
